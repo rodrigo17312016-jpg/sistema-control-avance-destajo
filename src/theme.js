@@ -79,13 +79,13 @@
     document.head.appendChild(style);
 
     // Apply on load
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            applyTheme(getPreferredTheme());
-            createToggleButton();
-        });
-    } else {
-        applyTheme(getPreferredTheme());
+    function boot() {
         createToggleButton();
+        applyTheme(getPreferredTheme());
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot);
+    } else {
+        boot();
     }
 })();
