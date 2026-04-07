@@ -8,8 +8,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 50%, #0d0d3a 100%);
-            color: #fff;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -24,12 +24,12 @@
         }
         h1 {
             font-size: 2.2em;
-            color: #00d4ff;
+            color: var(--accent);
             margin-bottom: 10px;
             letter-spacing: 2px;
         }
         .subtitle {
-            color: #8888aa;
+            color: var(--text-secondary);
             font-size: 1.1em;
             margin-bottom: 50px;
         }
@@ -40,20 +40,20 @@
             margin-bottom: 40px;
         }
         .card {
-            background: linear-gradient(135deg, #1a1a4e, #252560);
-            border: 1px solid #333366;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 35px 25px;
             text-decoration: none;
-            color: #fff;
+            color: var(--text-primary);
             transition: all 0.3s ease;
             cursor: pointer;
             display: block;
         }
         .card:hover {
             transform: translateY(-5px);
-            border-color: #00d4ff;
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px var(--accent-glow);
         }
         .card-icon {
             font-size: 3em;
@@ -62,11 +62,11 @@
         }
         .card h2 {
             font-size: 1.3em;
-            color: #00d4ff;
+            color: var(--accent);
             margin-bottom: 10px;
         }
         .card p {
-            color: #8888aa;
+            color: var(--text-secondary);
             font-size: 0.9em;
             line-height: 1.5;
         }
@@ -74,17 +74,17 @@
         .card.scanner .card-icon { color: #ffaa00; }
         .card.dashboard .card-icon { color: #ff6b9d; }
         .footer {
-            color: #555577;
+            color: var(--text-muted);
             font-size: 0.85em;
             margin-top: 30px;
         }
         .version {
             display: inline-block;
-            background: #1a1a4e;
+            background: var(--bg-secondary);
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.8em;
-            color: #00d4ff;
+            color: var(--accent);
             margin-top: 10px;
         }
     </style>
@@ -119,5 +119,6 @@
             <span class="version">Supabase + Realtime</span>
         </div>
     </div>
+    <script src="theme.js"></script>
 </body>
 </html>

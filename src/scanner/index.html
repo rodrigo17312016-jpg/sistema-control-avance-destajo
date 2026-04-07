@@ -12,15 +12,15 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: #0a0a2e;
-            --card: #1a1a4e;
-            --card-border: #2a2a6e;
-            --accent: #00d4ff;
-            --success: #00ff88;
-            --error: #ff0055;
-            --warning: #ffaa00;
-            --text: #e0e0ff;
-            --text-muted: #8888bb;
+            --bg: var(--bg-primary, #0a0a2e);
+            --card: var(--bg-secondary, #1a1a4e);
+            --card-border: var(--border-color, #2a2a6e);
+            --accent: var(--accent, #00d4ff);
+            --success: var(--success, #00ff88);
+            --error: var(--danger, #ff0055);
+            --warning: var(--warning, #ffaa00);
+            --text: var(--text-primary, #e0e0ff);
+            --text-muted: var(--text-secondary, #8888bb);
             --radius: 14px;
         }
 
@@ -34,7 +34,7 @@
 
         /* Header */
         .header {
-            background: linear-gradient(135deg, #12124a 0%, #1a1a5e 100%);
+            background: linear-gradient(135deg, var(--bg-primary, #12124a) 0%, var(--bg-secondary, #1a1a5e) 100%);
             padding: 14px 16px;
             display: flex;
             align-items: center;
@@ -132,7 +132,7 @@
 
         /* Scanner section */
         .scanner-section {
-            background: linear-gradient(145deg, var(--card), #141448);
+            background: linear-gradient(145deg, var(--card), var(--bg-primary, #141448));
             border: 1px solid var(--card-border);
             border-radius: var(--radius);
             padding: 16px;
@@ -179,12 +179,12 @@
 
         .btn-primary {
             background: linear-gradient(135deg, var(--accent), #0099cc);
-            color: #fff;
+            color: var(--text-primary, #fff);
         }
 
         .btn-stop {
             background: linear-gradient(135deg, var(--error), #cc0044);
-            color: #fff;
+            color: var(--text-primary, #fff);
         }
 
         /* Result card */
@@ -241,7 +241,7 @@
         }
 
         .kpi-card {
-            background: linear-gradient(145deg, var(--card), #141448);
+            background: linear-gradient(145deg, var(--card), var(--bg-primary, #141448));
             border: 1px solid var(--card-border);
             border-radius: var(--radius);
             padding: 14px;
@@ -268,7 +268,7 @@
 
         /* Manual registration */
         .manual-section {
-            background: linear-gradient(145deg, var(--card), #141448);
+            background: linear-gradient(145deg, var(--card), var(--bg-primary, #141448));
             border: 1px solid var(--card-border);
             border-radius: var(--radius);
             padding: 16px;
@@ -294,7 +294,7 @@
             padding: 10px 14px;
             border-radius: 10px;
             border: 1px solid var(--card-border);
-            background: rgba(255,255,255,0.05);
+            background: var(--bg-input, rgba(255,255,255,0.05));
             color: var(--text);
             font-size: 14px;
             outline: none;
@@ -307,14 +307,14 @@
 
         .btn-manual {
             background: linear-gradient(135deg, #a78bfa, #7c3aed);
-            color: #fff;
+            color: var(--text-primary, #fff);
             width: 100%;
             margin-top: 4px;
         }
 
         /* History */
         .history-section {
-            background: linear-gradient(145deg, var(--card), #141448);
+            background: linear-gradient(145deg, var(--card), var(--bg-primary, #141448));
             border: 1px solid var(--card-border);
             border-radius: var(--radius);
             padding: 16px;
@@ -913,6 +913,7 @@ if ('serviceWorker' in navigator) {
 // Init
 actualizarBannerOffline();
 </script>
+<script src="../theme.js"></script>
 
 </body>
 </html>

@@ -242,7 +242,7 @@
 
         .btn-success {
             background: linear-gradient(135deg, var(--success), #00aa55);
-            color: #0a0a2e;
+            color: var(--bg-primary);
             box-shadow: 0 4px 20px rgba(0, 255, 136, 0.25);
         }
 
@@ -382,7 +382,7 @@
 
         .toast-success {
             background: var(--success);
-            color: #0a0a2e;
+            color: var(--bg-primary);
         }
 
         .toast-error {
@@ -392,7 +392,7 @@
 
         .toast-warning {
             background: var(--warning);
-            color: #0a0a2e;
+            color: var(--bg-primary);
         }
 
         /* ---------- EMPTY STATE ---------- */
@@ -759,7 +759,14 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibnZyZnZjdWpzcm1pZnZscW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MDY3OTUsImV4cCI6MjA4OTA4Mjc5NX0.A7BilSrDzqe2rqz1Kh8fg5t-GVNxrLGYJK4IaMlVtBs';
         const SECRET_KEY   = 'FT_PIURA_2026_SECRET';
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let supabase;
+        function initSupabase() {
+            if (window.supabase && window.supabase.createClient) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                return true;
+            }
+            return false;
+        }
 
         // =====================================================
         //  STATE
@@ -772,9 +779,15 @@
         //  INIT
         // =====================================================
         function inicializar() {
+            if (!initSupabase()) {
+                // CDN not loaded yet, retry in 500ms
+                setTimeout(inicializar, 500);
+                return;
+            }
             const hoy = new Date().toISOString().split('T')[0];
             document.getElementById('inputFecha').value = hoy;
             document.getElementById('fechaHoy').textContent = formatearFecha(hoy);
+            document.getElementById('selectTrabajador').addEventListener('change', seleccionarTrabajador);
             cargarTrabajadores();
         }
 
@@ -857,7 +870,6 @@
                     select.appendChild(opt);
                 });
 
-                select.addEventListener('change', seleccionarTrabajador);
             } catch (err) {
                 console.error('[cargarTrabajadores] Error cargando trabajadores:', err);
                 mostrarToast('Error al cargar trabajadores: ' + (err.message || 'Error desconocido'), 'error');
@@ -1257,5 +1269,6 @@
             mostrarToast('Vista previa limpiada', 'success');
         }
     </script>
+    <script src="../theme.js"></script>
 </body>
 </html>
