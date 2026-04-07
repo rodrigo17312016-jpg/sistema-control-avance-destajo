@@ -13,15 +13,14 @@
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
             font-family: 'Segoe UI', Arial, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             -webkit-font-smoothing: antialiased;
-            display: flex;
-            flex-direction: column;
         }
 
         /* ============================================
@@ -131,10 +130,10 @@
            KPI ROW
            ============================================ */
         .kpi-row {
-            height: 100px;
             display: flex;
             gap: 15px;
-            padding: 10px 20px;
+            padding: 15px 20px;
+            flex-wrap: wrap;
         }
 
         .kpi-card {
@@ -223,17 +222,16 @@
            ============================================ */
         .main-content {
             display: flex;
-            gap: 15px;
-            padding: 0 20px;
-            flex: 1;
-            min-height: 0;
+            gap: 20px;
+            padding: 0 20px 20px;
         }
 
         /* LEFT: RANKING TABLE */
         .panel-left {
-            flex: 0 0 60%;
+            flex: 1 1 60%;
             display: flex;
             flex-direction: column;
+            min-width: 0;
         }
 
         .panel-title {
@@ -258,7 +256,6 @@
         }
 
         .ranking-table-wrapper {
-            flex: 1;
             overflow: hidden;
             position: relative;
             border-radius: 12px;
@@ -398,21 +395,21 @@
         /* Scrollable body */
         .ranking-scroll {
             overflow-y: auto;
-            max-height: calc(100% - 40px);
-            scrollbar-width: none;
+            max-height: 500px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
         }
-        .ranking-scroll::-webkit-scrollbar { display: none; }
 
         /* RIGHT PANEL */
         .panel-right {
-            flex: 0 0 calc(40% - 15px);
+            flex: 1 1 35%;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
+            min-width: 0;
         }
 
         .chart-container {
-            flex: 1;
             background: linear-gradient(135deg, var(--bg-secondary), var(--bg-secondary));
             border: 1px solid var(--border-color);
             border-radius: 12px;
@@ -420,7 +417,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            min-height: 0;
+            height: 380px;
         }
 
         .chart-container canvas {
@@ -429,7 +426,6 @@
         }
 
         .alerts-container {
-            flex: 1;
             background: linear-gradient(135deg, var(--bg-secondary), var(--bg-secondary));
             border: 1px solid var(--border-color);
             border-radius: 12px;
@@ -437,11 +433,12 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            height: 250px;
         }
 
         .alerts-list {
             flex: 1;
-            overflow: hidden;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 4px;
