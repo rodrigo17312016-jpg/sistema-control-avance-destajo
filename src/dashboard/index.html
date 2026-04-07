@@ -296,17 +296,17 @@
             transition: background 0.4s ease, box-shadow 0.4s ease;
         }
 
-        .ranking-table tbody tr:nth-child(odd) { background: #0d0d2a; }
-        .ranking-table tbody tr:nth-child(even) { background: #0f0f35; }
+        .ranking-table tbody tr:nth-child(odd) { background: var(--bg-primary); }
+        .ranking-table tbody tr:nth-child(even) { background: var(--bg-secondary); }
 
         .ranking-table tbody tr:hover {
-            background: #15154a;
+            background: var(--accent-glow);
         }
 
         .ranking-table tbody td {
             padding: 8px 12px;
             font-size: 14px;
-            border-bottom: 1px solid #1a1a40;
+            border-bottom: 1px solid var(--border-color);
             vertical-align: middle;
         }
 
@@ -347,7 +347,7 @@
         .progress-bar-container {
             width: 100%;
             height: 20px;
-            background: #0a0a20;
+            background: var(--border-color);
             border-radius: 10px;
             overflow: hidden;
             position: relative;
@@ -389,7 +389,7 @@
 
         .worker-name {
             font-weight: 600;
-            color: #e0e8ff;
+            color: var(--text-primary);
         }
 
         /* Scrollable body */
@@ -449,7 +449,7 @@
             align-items: center;
             gap: 10px;
             padding: 6px 10px;
-            background: rgba(10,10,40,0.5);
+            background: var(--bg-primary);
             border-radius: 8px;
             font-size: 12px;
             transition: opacity 0.5s ease, transform 0.5s ease;
@@ -478,7 +478,7 @@
         }
 
         .alert-msg {
-            color: #c0c8e0;
+            color: var(--text-primary);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -597,7 +597,7 @@
         .volver-top-link:hover {
             color: var(--accent);
             border-color: var(--accent);
-            background: linear-gradient(135deg, #1a1a5e, #303070);
+            background: var(--accent-glow);
         }
 
         /* ============================================
