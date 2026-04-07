@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#00d4ff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Escaner de Avance - Frutas Tropicales</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a2e;
+            --card: #1a1a4e;
+            --card-border: #2a2a6e;
+            --accent: #00d4ff;
+            --success: #00ff88;
+            --error: #ff0055;
+            --warning: #ffaa00;
+            --text: #e0e0ff;
+            --text-muted: #8888bb;
+            --radius: 14px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #12124a 0%, #1a1a5e 100%);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover { opacity: 1; }
+
+        .header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-right {
+            text-align: right;
+            font-size: 12px;
+        }
+
+        .clock {
+            font-size: 18px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--accent);
+        }
+
+        .turno-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--bg);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 2px;
+        }
+
+        /* Offline banner */
+        .offline-banner {
+            display: none;
+            background: linear-gradient(90deg, #5a4a00, #6b5500);
+            color: var(--warning);
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .offline-banner.visible { display: flex; }
+
+        .btn-sync {
+            background: var(--warning);
+            color: #1a1a00;
+            border: none;
+            padding: 4px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* Main content */
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Scanner section */
+        .scanner-section {
+            background: linear-gradient(145deg, var(--card), #141448);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .scanner-section h2 {
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        #reader {
+            width: 280px;
+            height: 280px;
+            margin: 0 auto;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid var(--card-border);
+        }
+
+        #reader video { border-radius: 12px; }
+
+        .scanner-controls {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:active { transform: scale(0.96); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0099cc);
+            color: #fff;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, var(--error), #cc0044);
+            color: #fff;
+        }
+
+        /* Result card */
+        .result-card {
+            display: none;
+            margin-top: 14px;
+            padding: 16px;
+            border-radius: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .result-card.success {
+            display: block;
+            background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,255,136,0.05));
+            border: 1px solid rgba(0,255,136,0.3);
+        }
+
+        .result-card.error {
+            display: block;
+            background: linear-gradient(135deg, rgba(255,0,85,0.15), rgba(255,0,85,0.05));
+            border: 1px solid rgba(255,0,85,0.3);
+        }
+
+        .result-icon {
+            font-size: 36px;
+            margin-bottom: 6px;
+        }
+
+        .result-card.success .result-icon { color: var(--success); }
+        .result-card.error .result-icon { color: var(--error); }
+
+        .result-text {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .result-detail {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* KPI cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .kpi-card {
+            background: linear-gradient(145deg, var(--card), #141448);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 14px;
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .kpi-card:nth-child(1) .kpi-value { color: var(--accent); }
+        .kpi-card:nth-child(2) .kpi-value { color: var(--error); }
+        .kpi-card:nth-child(3) .kpi-value { color: var(--success); }
+        .kpi-card:nth-child(4) .kpi-value { color: #a78bfa; }
+
+        .kpi-label {
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Manual registration */
+        .manual-section {
+            background: linear-gradient(145deg, var(--card), #141448);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .manual-section h3 {
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .manual-form {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus { border-color: var(--accent); }
+
+        .input-field::placeholder { color: var(--text-muted); }
+
+        .btn-manual {
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            color: #fff;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        /* History */
+        .history-section {
+            background: linear-gradient(145deg, var(--card), #141448);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 30px;
+        }
+
+        .history-section h3 {
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .history-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .history-item.ok {
+            background: rgba(0,255,136,0.08);
+            border-left: 3px solid var(--success);
+        }
+
+        .history-item.fail {
+            background: rgba(255,0,85,0.08);
+            border-left: 3px solid var(--error);
+        }
+
+        .history-status {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .history-info { flex: 1; }
+
+        .history-info .name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .history-info .detail {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .history-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
+        }
+
+        .empty-history {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 20px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
+
+        /* Responsive */
+        @media (max-width: 360px) {
+            #reader { width: 240px; height: 240px; }
+            .kpi-value { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-left">
+        <a href="../index.html" class="back-link">&#8592; Volver</a>
+        <h1>ESCANER DE AVANCE</h1>
+    </div>
+    <div class="header-right">
+        <div class="clock" id="clock">--:--:--</div>
+        <div class="turno-badge" id="turno">TURNO --</div>
+    </div>
+</div>
+
+<!-- Offline banner -->
+<div class="offline-banner" id="offlineBanner">
+    &#9888; MODO OFFLINE &mdash; <span id="pendingCount">0</span> escaneos pendientes
+    <button class="btn-sync" onclick="sincronizarPendientes()">Sincronizar</button>
+</div>
+
+<div class="container">
+
+    <!-- Scanner -->
+    <div class="scanner-section">
+        <h2>&#128247; ESCANEAR CODIGO QR</h2>
+        <div id="reader"></div>
+        <div class="scanner-controls">
+            <button class="btn btn-primary" id="btnStart" onclick="iniciarEscaner()">Iniciar Escaner</button>
+            <button class="btn btn-stop" id="btnStop" onclick="detenerEscaner()" style="display:none">Detener</button>
+        </div>
+        <div class="result-card" id="resultCard">
+            <div class="result-icon" id="resultIcon"></div>
+            <div class="result-text" id="resultText"></div>
+            <div class="result-detail" id="resultDetail"></div>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpiTotal">0</div>
+            <div class="kpi-label">TOTAL ESCANEADAS</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpiErrores">0</div>
+            <div class="kpi-label">ERRORES</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpiUltima">--</div>
+            <div class="kpi-label">ULTIMA CAJA</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpiVelocidad">0.0</div>
+            <div class="kpi-label">CAJAS/MIN</div>
+        </div>
+    </div>
+
+    <!-- Manual Registration -->
+    <div class="manual-section">
+        <h3>&#9997; REGISTRO MANUAL</h3>
+        <div class="manual-form">
+            <input type="text" class="input-field" id="inputDni" placeholder="DNI (8 digitos)" maxlength="8" inputmode="numeric" pattern="[0-9]{8}">
+            <input type="text" class="input-field" id="inputCaja" placeholder="Nro. Caja" inputmode="numeric">
+            <button class="btn btn-manual" onclick="registroManual()">Registrar Manual</button>
+        </div>
+    </div>
+
+    <!-- History -->
+    <div class="history-section">
+        <h3>&#128203; HISTORIAL DE ESCANEOS</h3>
+        <div class="history-list" id="historyList">
+            <div class="empty-history">Sin escaneos registrados</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- CDN Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<script>
+// ============================================================
+// CONFIGURACION SUPABASE
+// ============================================================
+const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+const SUPABASE_KEY = 'TU_ANON_KEY_AQUI';
+
+let supabaseClient = null;
+try {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch (e) {
+    console.warn('Supabase no disponible:', e);
+}
+
+// ============================================================
+// ESTADO DE LA APP
+// ============================================================
+let html5QrCode = null;
+let scanning = false;
+let stats = { total: 0, errores: 0, ultimaCaja: '--', startTime: null };
+let historial = [];
+let pendientes = JSON.parse(localStorage.getItem('escaneos_pendientes') || '[]');
+let isOnline = true;
+let lastScanTime = 0;
+
+// ============================================================
+// RELOJ Y TURNO
+// ============================================================
+function actualizarReloj() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+
+    const hora = now.getHours();
+    let turno = 'NOCHE';
+    if (hora >= 6 && hora < 14) turno = 'MANANA';
+    else if (hora >= 14 && hora < 22) turno = 'TARDE';
+    document.getElementById('turno').textContent = `TURNO ${turno}`;
+}
+setInterval(actualizarReloj, 1000);
+actualizarReloj();
+
+// ============================================================
+// AUDIO - Web Audio API
+// ============================================================
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playBeepSuccess() {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 800;
+    gain.gain.value = 0.3;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+    osc.stop(audioCtx.currentTime + 0.15);
+}
+
+function playBeepError() {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = 300;
+    gain.gain.value = 0.25;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+    osc.stop(audioCtx.currentTime + 0.3);
+}
+
+// ============================================================
+// ESCANER QR
+// ============================================================
+function iniciarEscaner() {
+    if (scanning) return;
+
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    html5QrCode = new Html5Qrcode("reader");
+
+    const config = {
+        fps: 10,
+        qrbox: { width: 280, height: 280 },
+        aspectRatio: 1.0
+    };
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess,
+        () => {} // ignore scan failures
+    ).then(() => {
+        scanning = true;
+        if (!stats.startTime) stats.startTime = Date.now();
+        document.getElementById('btnStart').style.display = 'none';
+        document.getElementById('btnStop').style.display = 'inline-block';
+    }).catch(err => {
+        console.error('Error al iniciar camara:', err);
+        mostrarResultado(false, 'Error al acceder a la camara', err.toString());
+    });
+}
+
+function detenerEscaner() {
+    if (!html5QrCode || !scanning) return;
+    html5QrCode.stop().then(() => {
+        scanning = false;
+        document.getElementById('btnStart').style.display = 'inline-block';
+        document.getElementById('btnStop').style.display = 'none';
+    }).catch(console.error);
+}
+
+async function onScanSuccess(decodedText) {
+    // Throttle: ignore scans within 2 seconds
+    const now = Date.now();
+    if (now - lastScanTime < 2000) return;
+    lastScanTime = now;
+
+    let qrData;
+    try {
+        qrData = JSON.parse(decodedText);
+    } catch {
+        playBeepError();
+        mostrarResultado(false, 'QR invalido', 'No se pudo leer el codigo');
+        agregarHistorial(false, 'QR invalido', '--', '--');
+        stats.errores++;
+        actualizarKPIs();
+        autoResume();
+        return;
+    }
+
+    try {
+        if (!isOnline || !supabaseClient) throw new Error('offline');
+
+        const { data, error } = await supabaseClient.rpc('fn_registrar_escaneo', {
+            qr_raw: decodedText
+        });
+
+        if (error) throw error;
+
+        if (data && data.ok) {
+            playBeepSuccess();
+            const nombre = data.trabajador || qrData.trabajador || 'Trabajador';
+            const caja = data.caja || qrData.caja || qrData.nro_caja || '--';
+            mostrarResultado(true, nombre, `Caja #${caja} registrada`);
+            agregarHistorial(true, nombre, caja, '');
+            stats.total++;
+            stats.ultimaCaja = caja;
+        } else {
+            playBeepError();
+            const msg = (data && data.mensaje) || 'Caja duplicada o invalida';
+            mostrarResultado(false, msg, '');
+            agregarHistorial(false, msg, qrData.caja || '--', msg);
+            stats.errores++;
+        }
+    } catch (err) {
+        // Offline or error: store locally
+        if (err.message === 'offline' || !navigator.onLine) {
+            isOnline = false;
+            guardarPendiente(decodedText, qrData);
+            playBeepSuccess();
+            const nombre = qrData.trabajador || 'Trabajador';
+            const caja = qrData.caja || qrData.nro_caja || '--';
+            mostrarResultado(true, nombre, `Caja #${caja} (guardada offline)`);
+            agregarHistorial(true, nombre + ' (offline)', caja, '');
+            stats.total++;
+            stats.ultimaCaja = caja;
+        } else {
+            playBeepError();
+            mostrarResultado(false, 'Error de conexion', err.message || 'Error desconocido');
+            agregarHistorial(false, 'Error', '--', err.message);
+            stats.errores++;
+        }
+    }
+
+    actualizarKPIs();
+    autoResume();
+}
+
+function autoResume() {
+    setTimeout(() => {
+        const card = document.getElementById('resultCard');
+        card.className = 'result-card';
+    }, 1500);
+}
+
+// ============================================================
+// UI: RESULTADOS
+// ============================================================
+function mostrarResultado(ok, text, detail) {
+    const card = document.getElementById('resultCard');
+    const icon = document.getElementById('resultIcon');
+    const txt = document.getElementById('resultText');
+    const det = document.getElementById('resultDetail');
+
+    card.className = 'result-card ' + (ok ? 'success' : 'error');
+    icon.textContent = ok ? '\u2713' : '\u2717';
+    txt.textContent = text;
+    det.textContent = detail;
+}
+
+// ============================================================
+// KPIs
+// ============================================================
+function actualizarKPIs() {
+    document.getElementById('kpiTotal').textContent = stats.total;
+    document.getElementById('kpiErrores').textContent = stats.errores;
+    document.getElementById('kpiUltima').textContent = stats.ultimaCaja;
+
+    if (stats.startTime && stats.total > 0) {
+        const minutos = (Date.now() - stats.startTime) / 60000;
+        const vel = minutos > 0 ? (stats.total / minutos).toFixed(1) : '0.0';
+        document.getElementById('kpiVelocidad').textContent = vel;
+    }
+}
+
+// ============================================================
+// HISTORIAL
+// ============================================================
+function agregarHistorial(ok, nombre, caja, detalle) {
+    const now = new Date();
+    const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+
+    historial.unshift({ ok, nombre, caja, detalle, time });
+    if (historial.length > 30) historial.pop();
+
+    renderHistorial();
+}
+
+function renderHistorial() {
+    const list = document.getElementById('historyList');
+    if (historial.length === 0) {
+        list.innerHTML = '<div class="empty-history">Sin escaneos registrados</div>';
+        return;
+    }
+
+    list.innerHTML = historial.map(h => `
+        <div class="history-item ${h.ok ? 'ok' : 'fail'}">
+            <div class="history-status">${h.ok ? '\u2713' : '\u2717'}</div>
+            <div class="history-info">
+                <div class="name">${escapeHtml(h.nombre)}</div>
+                <div class="detail">Caja #${escapeHtml(String(h.caja))}${h.detalle ? ' - ' + escapeHtml(h.detalle) : ''}</div>
+            </div>
+            <div class="history-time">${h.time}</div>
+        </div>
+    `).join('');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ============================================================
+// REGISTRO MANUAL
+// ============================================================
+async function registroManual() {
+    const dni = document.getElementById('inputDni').value.trim();
+    const caja = document.getElementById('inputCaja').value.trim();
+
+    if (!/^\d{8}$/.test(dni)) {
+        playBeepError();
+        mostrarResultado(false, 'DNI invalido', 'Debe tener 8 digitos');
+        return;
+    }
+
+    if (!caja) {
+        playBeepError();
+        mostrarResultado(false, 'Falta numero de caja', '');
+        return;
+    }
+
+    try {
+        if (!isOnline || !supabaseClient) throw new Error('offline');
+
+        const { data, error } = await supabaseClient.rpc('fn_registro_manual', {
+            p_dni: dni,
+            p_caja: caja
+        });
+
+        if (error) throw error;
+
+        if (data && data.ok) {
+            playBeepSuccess();
+            const nombre = data.trabajador || `DNI ${dni}`;
+            mostrarResultado(true, nombre, `Caja #${caja} registrada manualmente`);
+            agregarHistorial(true, nombre + ' (manual)', caja, '');
+            stats.total++;
+            stats.ultimaCaja = caja;
+            if (!stats.startTime) stats.startTime = Date.now();
+        } else {
+            playBeepError();
+            const msg = (data && data.mensaje) || 'Error en registro';
+            mostrarResultado(false, msg, '');
+            agregarHistorial(false, msg, caja, msg);
+            stats.errores++;
+        }
+    } catch (err) {
+        if (err.message === 'offline' || !navigator.onLine) {
+            isOnline = false;
+            guardarPendiente(JSON.stringify({ dni, caja, manual: true }), { dni, caja, manual: true });
+            playBeepSuccess();
+            mostrarResultado(true, `DNI ${dni}`, `Caja #${caja} (guardada offline)`);
+            agregarHistorial(true, `DNI ${dni} (offline/manual)`, caja, '');
+            stats.total++;
+            stats.ultimaCaja = caja;
+            if (!stats.startTime) stats.startTime = Date.now();
+        } else {
+            playBeepError();
+            mostrarResultado(false, 'Error de conexion', err.message);
+            agregarHistorial(false, 'Error manual', caja, err.message);
+            stats.errores++;
+        }
+    }
+
+    actualizarKPIs();
+    autoResume();
+
+    document.getElementById('inputDni').value = '';
+    document.getElementById('inputCaja').value = '';
+}
+
+// ============================================================
+// MODO OFFLINE
+// ============================================================
+function guardarPendiente(rawQr, parsedData) {
+    pendientes.push({
+        raw: rawQr,
+        data: parsedData,
+        timestamp: new Date().toISOString()
+    });
+    localStorage.setItem('escaneos_pendientes', JSON.stringify(pendientes));
+    actualizarBannerOffline();
+}
+
+function actualizarBannerOffline() {
+    const banner = document.getElementById('offlineBanner');
+    const count = document.getElementById('pendingCount');
+    if (pendientes.length > 0) {
+        banner.classList.add('visible');
+        count.textContent = pendientes.length;
+    } else {
+        banner.classList.remove('visible');
+    }
+}
+
+async function sincronizarPendientes() {
+    if (!supabaseClient) {
+        alert('Supabase no configurado');
+        return;
+    }
+
+    const btn = document.querySelector('.btn-sync');
+    btn.textContent = 'Sincronizando...';
+    btn.disabled = true;
+
+    let exitosos = 0;
+    let fallidos = [];
+
+    for (const item of pendientes) {
+        try {
+            if (item.data && item.data.manual) {
+                const { error } = await supabaseClient.rpc('fn_registro_manual', {
+                    p_dni: item.data.dni,
+                    p_caja: item.data.caja
+                });
+                if (error) throw error;
+            } else {
+                const { error } = await supabaseClient.rpc('fn_registrar_escaneo', {
+                    qr_raw: item.raw
+                });
+                if (error) throw error;
+            }
+            exitosos++;
+        } catch (err) {
+            fallidos.push(item);
+        }
+    }
+
+    pendientes = fallidos;
+    localStorage.setItem('escaneos_pendientes', JSON.stringify(pendientes));
+
+    if (exitosos > 0) isOnline = true;
+
+    actualizarBannerOffline();
+    btn.textContent = 'Sincronizar';
+    btn.disabled = false;
+
+    if (fallidos.length === 0) {
+        mostrarResultado(true, 'Sincronizacion completa', `${exitosos} escaneos enviados`);
+    } else {
+        mostrarResultado(false, `${fallidos.length} pendientes`, `${exitosos} enviados correctamente`);
+    }
+    autoResume();
+}
+
+// Detectar estado de conexion
+window.addEventListener('online', () => {
+    isOnline = true;
+    if (pendientes.length > 0) actualizarBannerOffline();
+});
+
+window.addEventListener('offline', () => {
+    isOnline = false;
+    actualizarBannerOffline();
+});
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+        console.log('Service Worker registrado:', reg.scope);
+    }).catch(err => {
+        console.warn('Service Worker no registrado:', err);
+    });
+}
+
+// Init
+actualizarBannerOffline();
+</script>
+
+</body>
+</html>

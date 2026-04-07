@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Control de Avance - Frutas Tropicales Piura</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 50%, #0d0d3a 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 900px;
+            width: 90%;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        h1 {
+            font-size: 2.2em;
+            color: #00d4ff;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        .subtitle {
+            color: #8888aa;
+            font-size: 1.1em;
+            margin-bottom: 50px;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .card {
+            background: linear-gradient(135deg, #1a1a4e, #252560);
+            border: 1px solid #333366;
+            border-radius: 16px;
+            padding: 35px 25px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: block;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #00d4ff;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .card h2 {
+            font-size: 1.3em;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        .card p {
+            color: #8888aa;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .card.qr .card-icon { color: #00ff88; }
+        .card.scanner .card-icon { color: #ffaa00; }
+        .card.dashboard .card-icon { color: #ff6b9d; }
+        .footer {
+            color: #555577;
+            font-size: 0.85em;
+            margin-top: 30px;
+        }
+        .version {
+            display: inline-block;
+            background: #1a1a4e;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            color: #00d4ff;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CONTROL DE AVANCE POR DESTAJO</h1>
+        <p class="subtitle">Frutas Tropicales - Curumuy, Piura</p>
+
+        <div class="cards">
+            <a href="qr-generator/index.html" class="card qr">
+                <span class="card-icon">&#x2B1A;</span>
+                <h2>Generador de QR</h2>
+                <p>Genera e imprime codigos QR con Error Correction Level H para cada trabajador y turno.</p>
+            </a>
+
+            <a href="scanner/index.html" class="card scanner">
+                <span class="card-icon">&#x1F4F7;</span>
+                <h2>Escaner de Avance</h2>
+                <p>Escanea los QR de las cajas con la camara. Validacion instantanea contra la base de datos.</p>
+            </a>
+
+            <a href="dashboard/index.html" class="card dashboard">
+                <span class="card-icon">&#x1F4CA;</span>
+                <h2>Dashboard TV</h2>
+                <p>Pantalla gigante con ranking en tiempo real, estadisticas y alertas.</p>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>Sistema de Control de Avance por Destajo v1.0</p>
+            <span class="version">Supabase + Realtime</span>
+        </div>
+    </div>
+</body>
+</html>

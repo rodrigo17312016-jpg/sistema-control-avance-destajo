@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Codigos QR - Frutas Tropicales Piura</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a2e;
+            --bg-card: #1a1a4e;
+            --bg-card-hover: #222266;
+            --accent: #00d4ff;
+            --accent-dim: rgba(0, 212, 255, 0.15);
+            --success: #00ff88;
+            --success-dim: rgba(0, 255, 136, 0.15);
+            --danger: #ff4466;
+            --warning: #ffaa00;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0c0;
+            --text-muted: #6060a0;
+            --border: rgba(255, 255, 255, 0.08);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --radius: 14px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ---------- NAV ---------- */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            margin-bottom: 10px;
+        }
+
+        .nav-bar a {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+
+        .nav-bar a:hover { opacity: 0.75; }
+
+        /* ---------- HEADER ---------- */
+        .header {
+            text-align: center;
+            padding: 30px 0 20px;
+        }
+
+        .header h1 {
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            font-weight: 800;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        .header .divider {
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            border-radius: 3px;
+            margin: 14px auto 0;
+        }
+
+        /* ---------- CARDS ---------- */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            transition: border-color 0.3s;
+        }
+
+        .card:hover { border-color: rgba(0, 212, 255, 0.18); }
+
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        /* ---------- FORM ELEMENTS ---------- */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        select, input[type="number"], input[type="date"], input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.25s, box-shadow 0.25s;
+            outline: none;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        select option {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        /* ---------- WORKER INFO ---------- */
+        .worker-info {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            border-radius: var(--radius-sm);
+        }
+
+        .worker-info.visible { display: grid; }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-item .label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-item .value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 2px;
+        }
+
+        /* ---------- BUTTONS ---------- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 32px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: inherit;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.25s, opacity 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0088cc);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+            width: 100%;
+            padding: 16px;
+            font-size: 1.05rem;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            box-shadow: 0 6px 28px rgba(0, 212, 255, 0.45);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #00aa55);
+            color: #0a0a2e;
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.25);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            box-shadow: 0 6px 28px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-outline:hover:not(:disabled) {
+            background: var(--accent-dim);
+        }
+
+        /* ---------- PROGRESS BAR ---------- */
+        .progress-wrapper {
+            display: none;
+            margin-top: 16px;
+        }
+
+        .progress-wrapper.visible { display: block; }
+
+        .progress-bar-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            border-radius: 8px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            text-align: center;
+        }
+
+        /* ---------- QR GRID ---------- */
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .qr-item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            text-align: center;
+            transition: border-color 0.25s, transform 0.2s;
+        }
+
+        .qr-item:hover {
+            border-color: rgba(0, 212, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .qr-item canvas {
+            width: 120px !important;
+            height: 120px !important;
+            border-radius: 6px;
+        }
+
+        .qr-label {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .qr-label strong {
+            display: block;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+
+        /* ---------- STATS ---------- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 14px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 18px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        /* ---------- NOTIFICATIONS ---------- */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 14px 22px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 9999;
+            transform: translateX(120%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 360px;
+        }
+
+        .toast.show { transform: translateX(0); }
+
+        .toast-success {
+            background: var(--success);
+            color: #0a0a2e;
+        }
+
+        .toast-error {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .toast-warning {
+            background: var(--warning);
+            color: #0a0a2e;
+        }
+
+        /* ---------- EMPTY STATE ---------- */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* ---------- ACTION BAR ---------- */
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        /* ---------- PRINT STYLES ---------- */
+        @media print {
+            *, *::before, *::after {
+                color: #000 !important;
+                background: #fff !important;
+                box-shadow: none !important;
+                border: none !important;
+                -webkit-text-fill-color: #000 !important;
+            }
+
+            body {
+                background: #fff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .no-print,
+            .nav-bar,
+            .header,
+            #seccionTrabajador,
+            #seccionParametros,
+            #seccionGenerar,
+            #seccionEstadisticas,
+            .action-bar,
+            .toast {
+                display: none !important;
+            }
+
+            #seccionPreview {
+                display: block !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: #fff !important;
+                box-shadow: none !important;
+            }
+
+            #seccionPreview .card-title { display: none !important; }
+
+            .qr-grid {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 8mm !important;
+                padding: 5mm !important;
+            }
+
+            .qr-item {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                padding: 3mm !important;
+                border: 1px solid #ccc !important;
+                border-radius: 2mm !important;
+                text-align: center;
+            }
+
+            .qr-item canvas {
+                width: 25mm !important;
+                height: 25mm !important;
+            }
+
+            .qr-label {
+                font-size: 7pt !important;
+                color: #000 !important;
+                margin-top: 2mm !important;
+            }
+
+            .qr-label strong {
+                font-size: 8pt !important;
+                color: #000 !important;
+            }
+
+            .print-header {
+                display: block !important;
+                text-align: center;
+                font-size: 12pt;
+                font-weight: 700;
+                margin-bottom: 5mm;
+                padding: 3mm 0;
+                border-bottom: 1px solid #333;
+            }
+
+            .print-header .subtitle {
+                font-size: 9pt;
+                font-weight: 400;
+                color: #555 !important;
+            }
+        }
+
+        .print-header { display: none; }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 600px) {
+            .container { padding: 12px; }
+            .card { padding: 16px; }
+            .form-row { grid-template-columns: 1fr; }
+            .qr-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .btn-primary { font-size: 0.9rem; padding: 14px; }
+        }
+
+        /* ---------- LOADING SPINNER ---------- */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ---------- SCROLLBAR ---------- */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-card); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- NAV -->
+        <nav class="nav-bar no-print">
+            <a href="../index.html">&larr; Volver</a>
+            <span style="font-size:0.75rem;color:var(--text-muted);" id="fechaHoy"></span>
+        </nav>
+
+        <!-- HEADER -->
+        <header class="header no-print">
+            <h1>GENERADOR DE CODIGOS QR</h1>
+            <p>Frutas Tropicales Piura</p>
+            <div class="divider"></div>
+        </header>
+
+        <!-- PRINT HEADER (only visible when printing) -->
+        <div class="print-header">
+            FRUTAS TROPICALES PIURA &mdash; Codigos QR
+            <div class="subtitle" id="printSubtitle"></div>
+        </div>
+
+        <!-- SECTION 1: WORKER SELECTION -->
+        <section class="card no-print" id="seccionTrabajador">
+            <div class="card-title">Seleccionar Trabajador</div>
+            <div class="form-group">
+                <label for="selectTrabajador">Trabajador</label>
+                <select id="selectTrabajador">
+                    <option value="">-- Seleccione un trabajador --</option>
+                </select>
+            </div>
+            <div class="worker-info" id="workerInfo">
+                <div class="info-item">
+                    <div class="label">DNI</div>
+                    <div class="value" id="infoDni">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Nombre</div>
+                    <div class="value" id="infoNombre">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Area</div>
+                    <div class="value" id="infoArea">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Estacion</div>
+                    <div class="value" id="infoEstacion">-</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: PARAMETERS -->
+        <section class="card no-print" id="seccionParametros">
+            <div class="card-title">Parametros de Generacion</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="desdeCaja">Desde caja #</label>
+                    <input type="number" id="desdeCaja" min="1" value="1" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label for="hastaCaja">Hasta caja #</label>
+                    <input type="number" id="hastaCaja" min="1" value="10" placeholder="10">
+                </div>
+                <div class="form-group">
+                    <label for="selectTurno">Turno</label>
+                    <select id="selectTurno">
+                        <option value="manana">Manana</option>
+                        <option value="tarde">Tarde</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="inputFecha">Fecha</label>
+                    <input type="date" id="inputFecha">
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: GENERATE -->
+        <section class="card no-print" id="seccionGenerar">
+            <button class="btn btn-primary" id="btnGenerar" onclick="generarLote()">
+                GENERAR LOTE
+            </button>
+            <div class="progress-wrapper" id="progressWrapper">
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Preparando...</div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: PREVIEW -->
+        <section class="card" id="seccionPreview" style="display:none;">
+            <div class="card-title">Vista Previa de Codigos QR</div>
+            <div class="action-bar no-print">
+                <button class="btn btn-success" onclick="imprimirQR()">
+                    IMPRIMIR
+                </button>
+                <button class="btn btn-outline" onclick="limpiarPreview()">
+                    LIMPIAR
+                </button>
+            </div>
+            <div class="qr-grid" id="qrGrid"></div>
+        </section>
+
+        <!-- SECTION 5: STATS -->
+        <section class="card no-print" id="seccionEstadisticas">
+            <div class="card-title">Estadisticas del Dia</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statGenerados">0</div>
+                    <div class="stat-label">Generados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statImpresos">0</div>
+                    <div class="stat-label">Impresos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statEscaneados">0</div>
+                    <div class="stat-label">Escaneados</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // =====================================================
+        //  CONFIGURACION SUPABASE
+        // =====================================================
+        const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+        const SUPABASE_KEY = 'TU_ANON_KEY_AQUI';
+        const SECRET_KEY   = 'FT_PIURA_2026_SECRET';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // =====================================================
+        //  STATE
+        // =====================================================
+        let trabajadores = [];
+        let trabajadorSeleccionado = null;
+        let qrGenerados = [];
+
+        // =====================================================
+        //  INIT
+        // =====================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('inputFecha').value = hoy;
+            document.getElementById('fechaHoy').textContent = formatearFecha(hoy);
+            cargarTrabajadores();
+        });
+
+        // =====================================================
+        //  HELPERS
+        // =====================================================
+        function formatearFecha(iso) {
+            const [y, m, d] = iso.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        function mostrarToast(mensaje, tipo = 'success') {
+            const toast = document.getElementById('toast');
+            toast.className = `toast toast-${tipo} show`;
+            toast.textContent = mensaje;
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        function setProgress(pct, texto) {
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressText').textContent = texto;
+        }
+
+        function showProgress(show) {
+            document.getElementById('progressWrapper').classList.toggle('visible', show);
+        }
+
+        async function sha256Hash(message) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // =====================================================
+        //  CARGAR TRABAJADORES
+        // =====================================================
+        async function cargarTrabajadores() {
+            try {
+                const { data, error } = await supabase
+                    .from('trabajadores')
+                    .select('*')
+                    .order('nombre', { ascending: true });
+
+                if (error) throw error;
+
+                trabajadores = data || [];
+                const select = document.getElementById('selectTrabajador');
+
+                trabajadores.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = `${t.nombre} - DNI: ${t.dni}`;
+                    select.appendChild(opt);
+                });
+
+                select.addEventListener('change', seleccionarTrabajador);
+            } catch (err) {
+                console.error('Error cargando trabajadores:', err);
+                mostrarToast('Error al conectar con la base de datos', 'error');
+            }
+        }
+
+        // =====================================================
+        //  SELECCIONAR TRABAJADOR
+        // =====================================================
+        function seleccionarTrabajador() {
+            const id = this.value;
+            const info = document.getElementById('workerInfo');
+
+            if (!id) {
+                trabajadorSeleccionado = null;
+                info.classList.remove('visible');
+                return;
+            }
+
+            trabajadorSeleccionado = trabajadores.find(t => String(t.id) === id);
+            if (!trabajadorSeleccionado) return;
+
+            document.getElementById('infoDni').textContent = trabajadorSeleccionado.dni || '-';
+            document.getElementById('infoNombre').textContent = trabajadorSeleccionado.nombre || '-';
+            document.getElementById('infoArea').textContent = trabajadorSeleccionado.area || '-';
+            document.getElementById('infoEstacion').textContent = trabajadorSeleccionado.estacion || '-';
+            info.classList.add('visible');
+
+            cargarEstadisticas();
+        }
+
+        // =====================================================
+        //  VALIDAR PARAMETROS
+        // =====================================================
+        function validarParametros() {
+            if (!trabajadorSeleccionado) {
+                mostrarToast('Seleccione un trabajador', 'warning');
+                return false;
+            }
+
+            const desde = parseInt(document.getElementById('desdeCaja').value);
+            const hasta = parseInt(document.getElementById('hastaCaja').value);
+
+            if (isNaN(desde) || isNaN(hasta) || desde < 1 || hasta < 1) {
+                mostrarToast('Ingrese numeros de caja validos', 'warning');
+                return false;
+            }
+
+            if (desde > hasta) {
+                mostrarToast('El rango de cajas es invalido', 'warning');
+                return false;
+            }
+
+            if (hasta - desde + 1 > 200) {
+                mostrarToast('Maximo 200 cajas por lote', 'warning');
+                return false;
+            }
+
+            const fecha = document.getElementById('inputFecha').value;
+            if (!fecha) {
+                mostrarToast('Seleccione una fecha', 'warning');
+                return false;
+            }
+
+            return true;
+        }
+
+        // =====================================================
+        //  VERIFICAR DUPLICADOS
+        // =====================================================
+        async function verificarDuplicados(dni, desde, hasta, turno, fecha) {
+            try {
+                const { data, error } = await supabase
+                    .from('codigos_qr')
+                    .select('numero_caja')
+                    .eq('dni', dni)
+                    .eq('turno', turno)
+                    .gte('numero_caja', desde)
+                    .lte('numero_caja', hasta)
+                    .gte('fecha', fecha)
+                    .lt('fecha', fecha + 'T23:59:59');
+
+                if (error) throw error;
+
+                return data || [];
+            } catch (err) {
+                console.error('Error verificando duplicados:', err);
+                return [];
+            }
+        }
+
+        // =====================================================
+        //  GENERAR LOTE
+        // =====================================================
+        async function generarLote() {
+            if (!validarParametros()) return;
+
+            const btn = document.getElementById('btnGenerar');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Generando...';
+            showProgress(true);
+            setProgress(0, 'Verificando duplicados...');
+
+            const dni    = trabajadorSeleccionado.dni;
+            const nombre = trabajadorSeleccionado.nombre;
+            const desde  = parseInt(document.getElementById('desdeCaja').value);
+            const hasta  = parseInt(document.getElementById('hastaCaja').value);
+            const turno  = document.getElementById('selectTurno').value;
+            const fecha  = document.getElementById('inputFecha').value;
+            const total  = hasta - desde + 1;
+
+            try {
+                // Verificar duplicados
+                const duplicados = await verificarDuplicados(dni, desde, hasta, turno, fecha);
+                if (duplicados.length > 0) {
+                    const cajasDup = duplicados.map(d => d.numero_caja).join(', ');
+                    mostrarToast(`Ya existen QR para las cajas: ${cajasDup}`, 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'GENERAR LOTE';
+                    showProgress(false);
+                    return;
+                }
+
+                setProgress(10, 'Generando codigos QR...');
+
+                const grid = document.getElementById('qrGrid');
+                grid.innerHTML = '';
+                qrGenerados = [];
+
+                const registros = [];
+
+                for (let i = desde; i <= hasta; i++) {
+                    const numeroCaja = i;
+                    const timestamp  = new Date().toISOString();
+                    const rawHash    = `${dni}${numeroCaja}${turno}${timestamp}${SECRET_KEY}`;
+                    const fullHash   = await sha256Hash(rawHash);
+                    const hash       = fullHash.substring(0, 16);
+
+                    const qrData = JSON.stringify({
+                        v: 2,
+                        d: dni,
+                        c: numeroCaja,
+                        t: timestamp,
+                        s: turno,
+                        h: hash
+                    });
+
+                    // Crear elemento visual
+                    const item = document.createElement('div');
+                    item.className = 'qr-item';
+
+                    const canvas = document.createElement('canvas');
+                    item.appendChild(canvas);
+
+                    const label = document.createElement('div');
+                    label.className = 'qr-label';
+                    label.innerHTML = `<strong>Caja #${numeroCaja}</strong>${nombre}<br>DNI: ${dni}`;
+                    item.appendChild(label);
+
+                    grid.appendChild(item);
+
+                    // Generar QR en canvas
+                    await QRCode.toCanvas(canvas, qrData, {
+                        width: 160,
+                        margin: 1,
+                        color: { dark: '#000000', light: '#ffffff' },
+                        errorCorrectionLevel: 'M'
+                    });
+
+                    // Preparar registro para BD
+                    registros.push({
+                        dni: dni,
+                        nombre: nombre,
+                        numero_caja: numeroCaja,
+                        turno: turno,
+                        fecha: fecha,
+                        timestamp: timestamp,
+                        hash: hash,
+                        qr_data: qrData,
+                        estado: 'generado'
+                    });
+
+                    qrGenerados.push({ numeroCaja, qrData });
+
+                    // Actualizar progreso
+                    const pct = 10 + Math.round(((i - desde + 1) / total) * 70);
+                    setProgress(pct, `Generando caja ${i} de ${hasta}... (${i - desde + 1}/${total})`);
+                }
+
+                // Insertar en Supabase
+                setProgress(85, 'Guardando en base de datos...');
+
+                const { error: insertError } = await supabase
+                    .from('codigos_qr')
+                    .insert(registros);
+
+                if (insertError) throw insertError;
+
+                setProgress(100, `${total} codigos QR generados exitosamente`);
+
+                document.getElementById('seccionPreview').style.display = 'block';
+                document.getElementById('printSubtitle').textContent =
+                    `${nombre} | DNI: ${dni} | Turno: ${turno} | Cajas ${desde}-${hasta} | ${formatearFecha(fecha)}`;
+
+                mostrarToast(`${total} codigos QR generados correctamente`, 'success');
+
+                // Actualizar estadisticas
+                await cargarEstadisticas();
+
+            } catch (err) {
+                console.error('Error generando lote:', err);
+                mostrarToast('Error al generar el lote: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'GENERAR LOTE';
+                setTimeout(() => showProgress(false), 2000);
+            }
+        }
+
+        // =====================================================
+        //  CARGAR ESTADISTICAS
+        // =====================================================
+        async function cargarEstadisticas() {
+            if (!trabajadorSeleccionado) return;
+
+            const dni   = trabajadorSeleccionado.dni;
+            const fecha = document.getElementById('inputFecha').value;
+
+            try {
+                // Total generados hoy
+                const { count: generados } = await supabase
+                    .from('codigos_qr')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('dni', dni)
+                    .eq('fecha', fecha);
+
+                // Total impresos hoy
+                const { count: impresos } = await supabase
+                    .from('codigos_qr')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('dni', dni)
+                    .eq('fecha', fecha)
+                    .eq('estado', 'impreso');
+
+                // Total escaneados hoy
+                const { count: escaneados } = await supabase
+                    .from('codigos_qr')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('dni', dni)
+                    .eq('fecha', fecha)
+                    .eq('estado', 'escaneado');
+
+                document.getElementById('statGenerados').textContent = generados || 0;
+                document.getElementById('statImpresos').textContent = impresos || 0;
+                document.getElementById('statEscaneados').textContent = escaneados || 0;
+
+            } catch (err) {
+                console.error('Error cargando estadisticas:', err);
+            }
+        }
+
+        // =====================================================
+        //  IMPRIMIR
+        // =====================================================
+        function imprimirQR() {
+            if (qrGenerados.length === 0) {
+                mostrarToast('No hay codigos QR para imprimir', 'warning');
+                return;
+            }
+
+            // Marcar como impresos en BD
+            marcarImpresos();
+
+            window.print();
+        }
+
+        async function marcarImpresos() {
+            if (!trabajadorSeleccionado) return;
+
+            const dni   = trabajadorSeleccionado.dni;
+            const fecha = document.getElementById('inputFecha').value;
+            const cajas = qrGenerados.map(q => q.numeroCaja);
+
+            try {
+                await supabase
+                    .from('codigos_qr')
+                    .update({ estado: 'impreso' })
+                    .eq('dni', dni)
+                    .eq('fecha', fecha)
+                    .in('numero_caja', cajas)
+                    .eq('estado', 'generado');
+
+                await cargarEstadisticas();
+            } catch (err) {
+                console.error('Error marcando impresos:', err);
+            }
+        }
+
+        // =====================================================
+        //  LIMPIAR PREVIEW
+        // =====================================================
+        function limpiarPreview() {
+            document.getElementById('qrGrid').innerHTML = '';
+            document.getElementById('seccionPreview').style.display = 'none';
+            qrGenerados = [];
+            mostrarToast('Vista previa limpiada', 'success');
+        }
+    </script>
+</body>
+</html>

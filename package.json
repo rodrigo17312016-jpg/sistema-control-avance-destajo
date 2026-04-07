@@ -1,0 +1,19 @@
+{
+  "name": "sistema-control-avance-destajo",
+  "version": "1.0.0",
+  "description": "Sistema de Control de Avance por Destajo en Tiempo Real - Frutas Tropicales Piura",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/server.js",
+    "setup-db": "node scripts/setup-database.js",
+    "seed": "node scripts/seed-data.js",
+    "generate-qr": "node scripts/generate-qr-batch.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.7"
+  }
+}

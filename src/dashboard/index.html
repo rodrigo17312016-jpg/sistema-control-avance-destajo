@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Avance - Frutas Tropicales Piura</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <style>
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #0a0a2e;
+            color: #e0e0f0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        .header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            background: linear-gradient(90deg, #0d0d35, #151550, #0d0d35);
+            border-bottom: 2px solid #1a1a55;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .company-name {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(0,212,255,0.3);
+        }
+
+        .company-name span {
+            color: #00d4ff;
+        }
+
+        .header-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #00d4ff;
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px rgba(0,212,255,0.5), 0 0 60px rgba(0,212,255,0.2);
+            animation: titlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { text-shadow: 0 0 30px rgba(0,212,255,0.5), 0 0 60px rgba(0,212,255,0.2); }
+            50% { text-shadow: 0 0 40px rgba(0,212,255,0.8), 0 0 80px rgba(0,212,255,0.4); }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            text-align: right;
+        }
+
+        .clock-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .clock-time {
+            font-size: 28px;
+            font-weight: 700;
+            color: #00ff88;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 15px rgba(0,255,136,0.4);
+            letter-spacing: 2px;
+        }
+
+        .clock-date {
+            font-size: 12px;
+            color: #88aacc;
+            margin-top: -2px;
+        }
+
+        .turno-badge {
+            background: linear-gradient(135deg, #1a1a4e, #252560);
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #00d4ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ============================================
+           KPI ROW
+           ============================================ */
+        .kpi-row {
+            height: 100px;
+            display: flex;
+            gap: 15px;
+            padding: 10px 20px;
+        }
+
+        .kpi-card {
+            flex: 1;
+            background: linear-gradient(135deg, #1a1a4e, #252560);
+            border: 1px solid #333366;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .kpi-card:nth-child(1)::before { background: linear-gradient(90deg, transparent, #00d4ff, transparent); }
+        .kpi-card:nth-child(2)::before { background: linear-gradient(90deg, transparent, #00ff88, transparent); }
+        .kpi-card:nth-child(3)::before { background: linear-gradient(90deg, transparent, #aa88ff, transparent); }
+        .kpi-card:nth-child(4)::before { background: linear-gradient(90deg, transparent, #ffaa00, transparent); }
+        .kpi-card:nth-child(5)::before { background: linear-gradient(90deg, transparent, #ff6688, transparent); }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        .kpi-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: #8899bb;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 800;
+            transition: color 0.5s ease, text-shadow 0.5s ease;
+            line-height: 1.1;
+        }
+
+        .kpi-value.cyan { color: #00d4ff; text-shadow: 0 0 20px rgba(0,212,255,0.4); }
+        .kpi-value.green { color: #00ff88; text-shadow: 0 0 20px rgba(0,255,136,0.4); }
+        .kpi-value.purple { color: #aa88ff; text-shadow: 0 0 20px rgba(170,136,255,0.4); }
+        .kpi-value.yellow { color: #ffaa00; text-shadow: 0 0 20px rgba(255,170,0,0.4); }
+        .kpi-value.red { color: #ff0055; text-shadow: 0 0 20px rgba(255,0,85,0.4); }
+
+        .kpi-sub {
+            font-size: 12px;
+            color: #667799;
+            margin-top: 2px;
+        }
+
+        .kpi-best-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffaa00;
+            text-shadow: 0 0 10px rgba(255,170,0,0.3);
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .kpi-best-count {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffaa00;
+        }
+
+        /* ============================================
+           MAIN CONTENT
+           ============================================ */
+        .main-content {
+            display: flex;
+            gap: 15px;
+            padding: 0 20px;
+            height: calc(1080px - 60px - 100px - 40px);
+        }
+
+        /* LEFT: RANKING TABLE */
+        .panel-left {
+            flex: 0 0 60%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #00d4ff;
+            padding: 10px 15px 8px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: #00d4ff;
+            border-radius: 2px;
+        }
+
+        .ranking-table-wrapper {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            border-radius: 12px;
+            border: 1px solid #222255;
+            background: #0c0c28;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .ranking-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .ranking-table thead th {
+            background: linear-gradient(180deg, #1a1a4e, #151545);
+            padding: 10px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #8899bb;
+            text-transform: uppercase;
+            text-align: left;
+            border-bottom: 2px solid #333366;
+        }
+
+        .ranking-table thead th:first-child { text-align: center; width: 50px; }
+        .ranking-table thead th:nth-child(3) { text-align: center; width: 80px; }
+        .ranking-table thead th:nth-child(4) { text-align: center; width: 70px; }
+        .ranking-table thead th:nth-child(5) { text-align: center; width: 90px; }
+        .ranking-table thead th:last-child { width: 180px; }
+
+        .ranking-table tbody tr {
+            transition: background 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .ranking-table tbody tr:nth-child(odd) { background: #0d0d2a; }
+        .ranking-table tbody tr:nth-child(even) { background: #0f0f35; }
+
+        .ranking-table tbody tr:hover {
+            background: #15154a;
+        }
+
+        .ranking-table tbody td {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-bottom: 1px solid #1a1a40;
+            vertical-align: middle;
+        }
+
+        .ranking-table tbody td:first-child { text-align: center; font-weight: 700; }
+        .ranking-table tbody td:nth-child(3) { text-align: center; font-weight: 700; font-size: 16px; }
+        .ranking-table tbody td:nth-child(4) { text-align: center; color: #667799; }
+        .ranking-table tbody td:nth-child(5) { text-align: center; font-weight: 700; }
+
+        /* Medal rows */
+        .rank-gold {
+            background: linear-gradient(90deg, rgba(255,215,0,0.08), transparent) !important;
+            border-left: 3px solid #ffd700;
+        }
+        .rank-silver {
+            background: linear-gradient(90deg, rgba(192,192,192,0.06), transparent) !important;
+            border-left: 3px solid #c0c0c0;
+        }
+        .rank-bronze {
+            background: linear-gradient(90deg, rgba(205,127,50,0.06), transparent) !important;
+            border-left: 3px solid #cd7f32;
+        }
+
+        .rank-medal {
+            font-size: 20px;
+            margin-right: 4px;
+        }
+
+        /* Goal achieved glow */
+        .row-goal-achieved {
+            box-shadow: inset 0 0 30px rgba(0,255,136,0.06);
+        }
+
+        .row-goal-achieved td:nth-child(5) {
+            color: #00ff88 !important;
+        }
+
+        /* Progress bar */
+        .progress-bar-container {
+            width: 100%;
+            height: 20px;
+            background: #0a0a20;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-out, background 0.5s ease;
+            position: relative;
+            min-width: 2px;
+        }
+
+        .progress-bar-fill.green {
+            background: linear-gradient(90deg, #00cc66, #00ff88);
+            box-shadow: 0 0 10px rgba(0,255,136,0.3);
+        }
+
+        .progress-bar-fill.yellow {
+            background: linear-gradient(90deg, #cc8800, #ffaa00);
+            box-shadow: 0 0 10px rgba(255,170,0,0.3);
+        }
+
+        .progress-bar-fill.red {
+            background: linear-gradient(90deg, #cc0044, #ff0055);
+            box-shadow: 0 0 10px rgba(255,0,85,0.3);
+        }
+
+        .progress-bar-text {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        }
+
+        .worker-name {
+            font-weight: 600;
+            color: #e0e8ff;
+        }
+
+        /* Scrollable body */
+        .ranking-scroll {
+            overflow-y: auto;
+            max-height: calc(100% - 40px);
+            scrollbar-width: none;
+        }
+        .ranking-scroll::-webkit-scrollbar { display: none; }
+
+        /* RIGHT PANEL */
+        .panel-right {
+            flex: 0 0 calc(40% - 15px);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chart-container {
+            flex: 1;
+            background: linear-gradient(135deg, #1a1a4e, #252560);
+            border: 1px solid #333366;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-container canvas {
+            flex: 1;
+        }
+
+        .alerts-container {
+            flex: 1;
+            background: linear-gradient(135deg, #1a1a4e, #252560);
+            border: 1px solid #333366;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .alerts-list {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px;
+            background: rgba(10,10,40,0.5);
+            border-radius: 8px;
+            font-size: 12px;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            flex-shrink: 0;
+        }
+
+        .alert-item:first-child {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .alert-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .alert-time {
+            color: #667799;
+            font-size: 11px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .alert-msg {
+            color: #c0c8e0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .alert-meta-reached .alert-msg { color: #00ff88; font-weight: 600; }
+        .alert-error .alert-msg { color: #ff0055; }
+        .alert-warning .alert-msg { color: #ffaa00; }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .footer {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            background: linear-gradient(90deg, #0d0d35, #151550, #0d0d35);
+            border-top: 1px solid #1a1a55;
+            gap: 20px;
+        }
+
+        .footer-ticker {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            height: 24px;
+        }
+
+        .footer-ticker-text {
+            position: absolute;
+            white-space: nowrap;
+            animation: tickerScroll 40s linear infinite;
+            font-size: 13px;
+            color: #8899bb;
+            line-height: 24px;
+        }
+
+        @keyframes tickerScroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .connection-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transition: background 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        .connection-dot.connected {
+            background: #00ff88;
+            box-shadow: 0 0 10px rgba(0,255,136,0.6);
+            animation: dotPulse 2s ease-in-out infinite;
+        }
+
+        .connection-dot.disconnected {
+            background: #ff0055;
+            box-shadow: 0 0 10px rgba(255,0,85,0.6);
+        }
+
+        .connection-dot.reconnecting {
+            background: #ffaa00;
+            box-shadow: 0 0 10px rgba(255,170,0,0.6);
+            animation: dotPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .connection-text.connected { color: #00ff88; }
+        .connection-text.disconnected { color: #ff0055; }
+        .connection-text.reconnecting { color: #ffaa00; }
+
+        .volver-link {
+            color: #556688;
+            text-decoration: none;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .volver-link:hover { color: #00d4ff; opacity: 1 !important; }
+        .footer:hover .volver-link { opacity: 0.6; }
+
+        /* ============================================
+           CELEBRATION OVERLAY
+           ============================================ */
+        .celebration-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 1920px; height: 1080px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            background: radial-gradient(ellipse at center, rgba(0,255,136,0.15) 0%, rgba(10,10,46,0.95) 70%);
+        }
+
+        .celebration-overlay.active {
+            animation: celebrationFade 3.5s ease-in-out forwards;
+        }
+
+        @keyframes celebrationFade {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .celebration-star {
+            font-size: 80px;
+            animation: celebrationStar 3.5s ease-in-out;
+        }
+
+        @keyframes celebrationStar {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            15% { transform: scale(1.3) rotate(0deg); opacity: 1; }
+            25% { transform: scale(1) rotate(0deg); }
+            75% { transform: scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: scale(0.5) rotate(180deg); opacity: 0; }
+        }
+
+        .celebration-title {
+            font-size: 28px;
+            color: #00ff88;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            text-shadow: 0 0 30px rgba(0,255,136,0.6);
+            animation: celebrationText 3.5s ease-in-out;
+        }
+
+        @keyframes celebrationText {
+            0% { transform: scale(0.5); opacity: 0; }
+            15% { transform: scale(1.1); opacity: 1; }
+            25% { transform: scale(1); }
+            75% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .celebration-name {
+            font-size: 56px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 40px rgba(0,212,255,0.6), 0 0 80px rgba(0,212,255,0.3), 0 4px 20px rgba(0,0,0,0.5);
+            margin-top: 5px;
+            animation: celebrationName 3.5s ease-in-out;
+        }
+
+        @keyframes celebrationName {
+            0% { transform: scale(0) translateY(50px); opacity: 0; }
+            12% { transform: scale(1.2) translateY(0); }
+            20% { transform: scale(1) translateY(0); opacity: 1; }
+            50% { transform: scale(1.05) translateY(0); }
+            55% { transform: scale(1) translateY(0); }
+            75% { opacity: 1; }
+            100% { transform: scale(0.8) translateY(-30px); opacity: 0; }
+        }
+
+        .celebration-detail {
+            font-size: 24px;
+            color: #ffaa00;
+            font-weight: 700;
+            margin-top: 8px;
+            text-shadow: 0 0 20px rgba(255,170,0,0.5);
+            animation: celebrationText 3.5s ease-in-out;
+        }
+
+        /* Confetti particles */
+        .confetti-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -20px;
+            animation: confettiFall 3s linear forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(1100px) rotate(720deg); opacity: 0; }
+        }
+
+        /* Ring glow behind star */
+        .celebration-ring {
+            position: absolute;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            border: 3px solid rgba(0,255,136,0.3);
+            animation: ringExpand 3.5s ease-out;
+        }
+
+        @keyframes ringExpand {
+            0% { transform: scale(0); opacity: 0; border-width: 3px; }
+            15% { opacity: 0.8; }
+            100% { transform: scale(4); opacity: 0; border-width: 1px; }
+        }
+
+        /* ============================================
+           AUTO-SCROLL ANIMATION
+           ============================================ */
+        .ranking-scroll.auto-scrolling {
+            animation: autoScroll var(--scroll-duration, 20s) linear infinite;
+        }
+
+        /* ============================================
+           VALUE UPDATE FLASH
+           ============================================ */
+        .flash-update {
+            animation: flashVal 0.6s ease-out;
+        }
+
+        @keyframes flashVal {
+            0% { transform: scale(1.2); filter: brightness(2); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+
+        /* Number counter transition */
+        .kpi-value, .ranking-table tbody td {
+            transition: all 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============================================
+     CELEBRATION OVERLAY
+     ============================================ -->
+<div class="celebration-overlay" id="celebrationOverlay">
+    <div class="celebration-ring"></div>
+    <div class="confetti-container" id="confettiContainer"></div>
+    <div class="celebration-star">&#11088;</div>
+    <div class="celebration-title">&#161;META CUMPLIDA!</div>
+    <div class="celebration-name" id="celebrationName"></div>
+    <div class="celebration-detail" id="celebrationDetail"></div>
+</div>
+
+<!-- ============================================
+     HEADER
+     ============================================ -->
+<div class="header">
+    <div class="header-left">
+        <div class="company-name"><span>FRUTAS</span> TROPICALES PIURA</div>
+    </div>
+    <div class="header-center">
+        <div class="header-title">&#9670; AVANCE EN TIEMPO REAL &#9670;</div>
+    </div>
+    <div class="header-right">
+        <div class="clock-container">
+            <div class="clock-time" id="clockTime">--:--:--</div>
+            <div class="clock-date" id="clockDate">--</div>
+        </div>
+        <div class="turno-badge" id="turnoBadge">TURNO --</div>
+    </div>
+</div>
+
+<!-- ============================================
+     KPI ROW
+     ============================================ -->
+<div class="kpi-row">
+    <div class="kpi-card">
+        <div class="kpi-label">Total Cajas Hoy</div>
+        <div class="kpi-value cyan" id="kpiTotalCajas">0</div>
+        <div class="kpi-sub">cajas procesadas</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Trabajadores Activos</div>
+        <div class="kpi-value green" id="kpiTrabajadores">0</div>
+        <div class="kpi-sub">en planta hoy</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Promedio / Persona</div>
+        <div class="kpi-value purple" id="kpiPromedio">0</div>
+        <div class="kpi-sub">cajas por trabajador</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Meta Cumplida</div>
+        <div class="kpi-value yellow" id="kpiMeta">0%</div>
+        <div class="kpi-sub">del objetivo diario</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Mejor Trabajador</div>
+        <div class="kpi-best-name" id="kpiBestName">--</div>
+        <div class="kpi-best-count" id="kpiBestCount">0</div>
+    </div>
+</div>
+
+<!-- ============================================
+     MAIN CONTENT
+     ============================================ -->
+<div class="main-content">
+    <!-- LEFT: RANKING TABLE -->
+    <div class="panel-left">
+        <div class="panel-title">Ranking de Produccion</div>
+        <div class="ranking-table-wrapper">
+            <table class="ranking-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Trabajador</th>
+                        <th>Cajas</th>
+                        <th>Meta</th>
+                        <th>% Avance</th>
+                        <th>Progreso</th>
+                    </tr>
+                </thead>
+            </table>
+            <div class="ranking-scroll" id="rankingScroll">
+                <table class="ranking-table">
+                    <tbody id="rankingBody">
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="panel-right">
+        <!-- Chart -->
+        <div class="chart-container">
+            <div class="panel-title" style="padding: 0 0 8px 0;">Top 10 Produccion</div>
+            <canvas id="barChart"></canvas>
+        </div>
+        <!-- Alerts -->
+        <div class="alerts-container">
+            <div class="panel-title" style="padding: 0 0 8px 0;">Alertas Recientes</div>
+            <div class="alerts-list" id="alertsList">
+                <!-- Alert items injected by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     FOOTER
+     ============================================ -->
+<div class="footer">
+    <div class="footer-ticker">
+        <div class="footer-ticker-text" id="footerTicker">
+            Bienvenidos a Frutas Tropicales Piura &#8212; Sistema de control de avance en tiempo real &#8212; &#161;Vamos por la meta del dia!
+        </div>
+    </div>
+    <div class="connection-status">
+        <div class="connection-dot disconnected" id="connectionDot"></div>
+        <span class="connection-text disconnected" id="connectionText">DESCONECTADO</span>
+    </div>
+    <a href="../index.html" class="volver-link">&#8592; Volver</a>
+</div>
+
+<!-- ============================================
+     JAVASCRIPT
+     ============================================ -->
+<script>
+(function() {
+    'use strict';
+
+    // ==========================================
+    // SUPABASE CONFIG
+    // ==========================================
+    const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+    const SUPABASE_KEY = 'TU_ANON_KEY_AQUI';
+
+    let supabase = null;
+    let realtimeChannel = null;
+    let barChart = null;
+
+    // State
+    let rankingData = [];
+    let statsData = {};
+    let alertsData = [];
+    let previousGoalState = {}; // Track who already achieved goal
+
+    // ==========================================
+    // INITIALIZATION
+    // ==========================================
+    function init() {
+        startClock();
+        initSupabase();
+        loadAllData();
+        // Fallback polling every 30s
+        setInterval(loadAllData, 30000);
+        // Auto-scroll check every 5s
+        setInterval(checkAutoScroll, 5000);
+    }
+
+    function initSupabase() {
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            subscribeRealtime();
+        } catch (e) {
+            console.error('Error inicializando Supabase:', e);
+            setConnectionStatus('disconnected');
+            // Load demo data for testing
+            loadDemoData();
+        }
+    }
+
+    // ==========================================
+    // SUPABASE REALTIME
+    // ==========================================
+    function subscribeRealtime() {
+        if (!supabase) return;
+
+        try {
+            realtimeChannel = supabase
+                .channel('dashboard-realtime')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'avance_produccion' }, () => {
+                    loadAllData();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'metas_diarias' }, () => {
+                    loadAllData();
+                })
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alertas' }, (payload) => {
+                    loadAlerts();
+                })
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        setConnectionStatus('connected');
+                    } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+                        setConnectionStatus('disconnected');
+                    } else {
+                        setConnectionStatus('reconnecting');
+                    }
+                });
+        } catch (e) {
+            console.error('Error en suscripcion realtime:', e);
+            setConnectionStatus('disconnected');
+        }
+    }
+
+    // ==========================================
+    // DATA LOADING
+    // ==========================================
+    async function loadAllData() {
+        await Promise.all([
+            loadRanking(),
+            loadStats(),
+            loadAlerts()
+        ]);
+    }
+
+    async function loadRanking() {
+        if (!supabase) return;
+        try {
+            const { data, error } = await supabase.rpc('fn_obtener_ranking');
+            if (error) throw error;
+            if (data) {
+                checkGoalAchievements(data);
+                rankingData = data;
+                renderRanking();
+                renderChart();
+            }
+        } catch (e) {
+            console.error('Error cargando ranking:', e);
+        }
+    }
+
+    async function loadStats() {
+        if (!supabase) return;
+        try {
+            const { data, error } = await supabase.rpc('fn_estadisticas_generales');
+            if (error) throw error;
+            if (data) {
+                statsData = Array.isArray(data) ? data[0] : data;
+                renderStats();
+            }
+        } catch (e) {
+            console.error('Error cargando estadisticas:', e);
+        }
+    }
+
+    async function loadAlerts() {
+        if (!supabase) return;
+        try {
+            const { data, error } = await supabase
+                .from('alertas')
+                .select('*')
+                .order('fecha_hora', { ascending: false })
+                .limit(10);
+            if (error) throw error;
+            if (data) {
+                alertsData = data;
+                renderAlerts();
+            }
+        } catch (e) {
+            console.error('Error cargando alertas:', e);
+        }
+    }
+
+    // ==========================================
+    // CHECK GOAL ACHIEVEMENTS
+    // ==========================================
+    function checkGoalAchievements(newData) {
+        if (!newData || !Array.isArray(newData)) return;
+        newData.forEach(worker => {
+            const pct = worker.meta > 0 ? (worker.cajas / worker.meta) * 100 : 0;
+            const id = worker.trabajador_id || worker.nombre;
+            const wasAchieved = previousGoalState[id];
+            if (pct >= 100 && !wasAchieved) {
+                triggerCelebration(worker.nombre, worker.cajas, worker.meta);
+            }
+            previousGoalState[id] = pct >= 100;
+        });
+    }
+
+    // ==========================================
+    // CELEBRATION
+    // ==========================================
+    function triggerCelebration(name, cajas, meta) {
+        const overlay = document.getElementById('celebrationOverlay');
+        const nameEl = document.getElementById('celebrationName');
+        const detailEl = document.getElementById('celebrationDetail');
+        const confettiEl = document.getElementById('confettiContainer');
+
+        nameEl.textContent = name;
+        detailEl.textContent = cajas + ' / ' + meta + ' cajas';
+
+        // Generate confetti
+        confettiEl.innerHTML = '';
+        const colors = ['#00ff88', '#00d4ff', '#ffaa00', '#ff0055', '#aa88ff', '#ffd700', '#ffffff'];
+        for (let i = 0; i < 60; i++) {
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random() * 100 + '%';
+            c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            c.style.animationDelay = Math.random() * 1.5 + 's';
+            c.style.animationDuration = (2 + Math.random() * 2) + 's';
+            c.style.width = (6 + Math.random() * 8) + 'px';
+            c.style.height = (6 + Math.random() * 8) + 'px';
+            c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            confettiEl.appendChild(c);
+        }
+
+        overlay.classList.remove('active');
+        void overlay.offsetWidth; // Force reflow
+        overlay.classList.add('active');
+
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            confettiEl.innerHTML = '';
+        }, 3600);
+    }
+
+    // ==========================================
+    // RENDER RANKING TABLE
+    // ==========================================
+    function renderRanking() {
+        const tbody = document.getElementById('rankingBody');
+        if (!rankingData || rankingData.length === 0) return;
+
+        let html = '';
+        rankingData.forEach((w, i) => {
+            const rank = i + 1;
+            const pct = w.meta > 0 ? Math.round((w.cajas / w.meta) * 100) : 0;
+            const barWidth = Math.min(pct, 100);
+            let barClass = 'red';
+            if (pct >= 100) barClass = 'green';
+            else if (pct >= 50) barClass = 'yellow';
+
+            let rowClass = '';
+            let medal = '';
+            if (rank === 1) { rowClass = 'rank-gold'; medal = '<span class="rank-medal">&#129351;</span>'; }
+            else if (rank === 2) { rowClass = 'rank-silver'; medal = '<span class="rank-medal">&#129352;</span>'; }
+            else if (rank === 3) { rowClass = 'rank-bronze'; medal = '<span class="rank-medal">&#129353;</span>'; }
+
+            if (pct >= 100) rowClass += ' row-goal-achieved';
+
+            let pctColor = '#ff0055';
+            if (pct >= 100) pctColor = '#00ff88';
+            else if (pct >= 50) pctColor = '#ffaa00';
+
+            html += '<tr class="' + rowClass + '">';
+            html += '<td>' + medal + rank + '</td>';
+            html += '<td><span class="worker-name">' + escapeHtml(w.nombre || '--') + '</span></td>';
+            html += '<td>' + (w.cajas || 0) + '</td>';
+            html += '<td>' + (w.meta || 0) + '</td>';
+            html += '<td style="color:' + pctColor + '">' + pct + '%</td>';
+            html += '<td><div class="progress-bar-container"><div class="progress-bar-fill ' + barClass + '" style="width:' + barWidth + '%"></div><span class="progress-bar-text">' + pct + '%</span></div></td>';
+            html += '</tr>';
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    // ==========================================
+    // RENDER STATS
+    // ==========================================
+    function renderStats() {
+        const s = statsData;
+        if (!s) return;
+
+        animateValue('kpiTotalCajas', s.total_cajas || 0);
+        animateValue('kpiTrabajadores', s.trabajadores_activos || 0);
+        animateValue('kpiPromedio', s.promedio_por_persona || 0);
+
+        const metaPct = s.meta_cumplida_pct || 0;
+        const metaEl = document.getElementById('kpiMeta');
+        metaEl.textContent = metaPct + '%';
+        metaEl.className = 'kpi-value';
+        if (metaPct > 60) metaEl.classList.add('green');
+        else if (metaPct >= 30) metaEl.classList.add('yellow');
+        else metaEl.classList.add('red');
+        metaEl.classList.add('flash-update');
+        setTimeout(() => metaEl.classList.remove('flash-update'), 600);
+
+        if (s.mejor_trabajador) {
+            document.getElementById('kpiBestName').textContent = s.mejor_trabajador;
+        }
+        if (s.mejor_trabajador_cajas !== undefined) {
+            document.getElementById('kpiBestCount').textContent = s.mejor_trabajador_cajas + ' cajas';
+        }
+    }
+
+    function animateValue(elementId, newValue) {
+        const el = document.getElementById(elementId);
+        const current = parseInt(el.textContent) || 0;
+        const target = parseInt(newValue) || 0;
+        if (current === target) return;
+
+        el.classList.add('flash-update');
+        setTimeout(() => el.classList.remove('flash-update'), 600);
+
+        const duration = 800;
+        const steps = 30;
+        const increment = (target - current) / steps;
+        let step = 0;
+
+        const timer = setInterval(() => {
+            step++;
+            if (step >= steps) {
+                el.textContent = target;
+                clearInterval(timer);
+            } else {
+                el.textContent = Math.round(current + increment * step);
+            }
+        }, duration / steps);
+    }
+
+    // ==========================================
+    // RENDER CHART
+    // ==========================================
+    function renderChart() {
+        if (!rankingData || rankingData.length === 0) return;
+
+        const top10 = rankingData.slice(0, 10).reverse();
+        const labels = top10.map(w => {
+            const name = w.nombre || '--';
+            return name.length > 18 ? name.substring(0, 18) + '...' : name;
+        });
+        const values = top10.map(w => w.cajas || 0);
+        const colors = top10.map(w => {
+            const pct = w.meta > 0 ? (w.cajas / w.meta) * 100 : 0;
+            if (pct >= 100) return '#00ff88';
+            if (pct >= 50) return '#ffaa00';
+            return '#ff0055';
+        });
+
+        const ctx = document.getElementById('barChart').getContext('2d');
+
+        // Destroy previous chart
+        if (barChart) {
+            barChart.destroy();
+            barChart = null;
+        }
+
+        barChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: colors.map(c => c + '88'),
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1a1a4e',
+                        titleColor: '#00d4ff',
+                        bodyColor: '#e0e0f0',
+                        borderColor: '#333366',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(ctx) {
+                                return ctx.raw + ' cajas';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#667799', font: { size: 11 } },
+                        border: { color: '#333366' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#c0c8e0', font: { size: 12, weight: '600' } },
+                        border: { color: '#333366' }
+                    }
+                },
+                animation: {
+                    duration: 800,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    }
+
+    // ==========================================
+    // RENDER ALERTS
+    // ==========================================
+    function renderAlerts() {
+        const container = document.getElementById('alertsList');
+        if (!alertsData || alertsData.length === 0) return;
+
+        const items = alertsData.slice(0, 8);
+        let html = '';
+
+        items.forEach(a => {
+            const tipo = (a.tipo || '').toLowerCase();
+            let icon = '&#128276;'; // bell
+            let cls = '';
+            if (tipo === 'meta_alcanzada' || tipo === 'meta_cumplida') {
+                icon = '&#127942;'; cls = 'alert-meta-reached';
+            } else if (tipo === 'error') {
+                icon = '&#9888;&#65039;'; cls = 'alert-error';
+            } else if (tipo === 'advertencia' || tipo === 'warning') {
+                icon = '&#9888;&#65039;'; cls = 'alert-warning';
+            } else if (tipo === 'produccion' || tipo === 'avance') {
+                icon = '&#128230;';
+            } else if (tipo === 'turno') {
+                icon = '&#128336;';
+            }
+
+            const time = a.fecha_hora ? formatAlertTime(a.fecha_hora) : '--:--';
+            const msg = a.mensaje || a.descripcion || '--';
+
+            html += '<div class="alert-item ' + cls + '">';
+            html += '<span class="alert-icon">' + icon + '</span>';
+            html += '<span class="alert-time">' + time + '</span>';
+            html += '<span class="alert-msg">' + escapeHtml(msg) + '</span>';
+            html += '</div>';
+        });
+
+        container.innerHTML = html;
+
+        // Update footer ticker with latest alerts
+        updateFooterTicker();
+    }
+
+    function formatAlertTime(dateStr) {
+        try {
+            const d = new Date(dateStr);
+            return d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false });
+        } catch (e) {
+            return '--:--';
+        }
+    }
+
+    function updateFooterTicker() {
+        const ticker = document.getElementById('footerTicker');
+        if (!alertsData || alertsData.length === 0) return;
+
+        const msgs = alertsData.slice(0, 5).map(a => {
+            const time = a.fecha_hora ? formatAlertTime(a.fecha_hora) : '';
+            return '[' + time + '] ' + (a.mensaje || a.descripcion || '');
+        });
+
+        ticker.textContent = msgs.join('  \u2014  ');
+    }
+
+    // ==========================================
+    // CONNECTION STATUS
+    // ==========================================
+    function setConnectionStatus(status) {
+        const dot = document.getElementById('connectionDot');
+        const text = document.getElementById('connectionText');
+
+        dot.className = 'connection-dot ' + status;
+        text.className = 'connection-text ' + status;
+
+        if (status === 'connected') text.textContent = 'CONECTADO';
+        else if (status === 'disconnected') text.textContent = 'DESCONECTADO';
+        else text.textContent = 'RECONECTANDO...';
+    }
+
+    // ==========================================
+    // CLOCK
+    // ==========================================
+    function startClock() {
+        updateClock();
+        setInterval(updateClock, 1000);
+    }
+
+    function updateClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+
+        document.getElementById('clockTime').textContent = h + ':' + m + ':' + s;
+
+        const dias = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
+        const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const dia = dias[now.getDay()];
+        const fecha = now.getDate();
+        const mes = meses[now.getMonth()];
+        const anio = now.getFullYear();
+
+        document.getElementById('clockDate').textContent = dia + ' ' + fecha + ' de ' + mes + ' de ' + anio;
+
+        // Turno
+        const hour = now.getHours();
+        let turno = 'FUERA DE TURNO';
+        if (hour >= 6 && hour < 14) turno = 'TURNO MANANA';
+        else if (hour >= 14 && hour < 22) turno = 'TURNO TARDE';
+
+        document.getElementById('turnoBadge').textContent = turno;
+    }
+
+    // ==========================================
+    // AUTO SCROLL
+    // ==========================================
+    function checkAutoScroll() {
+        const scrollEl = document.getElementById('rankingScroll');
+        if (scrollEl.scrollHeight > scrollEl.clientHeight) {
+            // Smooth scroll down then back up
+            const maxScroll = scrollEl.scrollHeight - scrollEl.clientHeight;
+            if (scrollEl.scrollTop === 0) {
+                scrollEl.scrollTo({ top: maxScroll, behavior: 'smooth' });
+            } else {
+                scrollEl.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    }
+
+    // ==========================================
+    // DEMO DATA (for testing without Supabase)
+    // ==========================================
+    function loadDemoData() {
+        const nombres = [
+            'Carlos Ramirez','Maria Lopez','Juan Perez','Ana Gutierrez',
+            'Pedro Sanchez','Rosa Martinez','Luis Torres','Carmen Flores',
+            'Miguel Diaz','Sofia Hernandez','Diego Vargas','Lucia Castillo',
+            'Fernando Rios','Patricia Mendoza','Roberto Cruz'
+        ];
+
+        rankingData = nombres.map((n, i) => {
+            const meta = 80 + Math.floor(Math.random() * 40);
+            const cajas = Math.floor(Math.random() * (meta * 1.3));
+            return { nombre: n, cajas: cajas, meta: meta, trabajador_id: i + 1 };
+        }).sort((a, b) => b.cajas - a.cajas);
+
+        const totalCajas = rankingData.reduce((s, w) => s + w.cajas, 0);
+        const activos = rankingData.length;
+        const prom = Math.round(totalCajas / activos);
+        const metaTotal = rankingData.reduce((s, w) => s + w.meta, 0);
+        const metaPct = Math.round((totalCajas / metaTotal) * 100);
+
+        statsData = {
+            total_cajas: totalCajas,
+            trabajadores_activos: activos,
+            promedio_por_persona: prom,
+            meta_cumplida_pct: metaPct,
+            mejor_trabajador: rankingData[0].nombre,
+            mejor_trabajador_cajas: rankingData[0].cajas
+        };
+
+        alertsData = [
+            { tipo: 'meta_cumplida', fecha_hora: new Date().toISOString(), mensaje: rankingData[0].nombre + ' alcanzo su meta diaria' },
+            { tipo: 'produccion', fecha_hora: new Date(Date.now() - 300000).toISOString(), mensaje: 'Se registraron 15 cajas para ' + rankingData[1].nombre },
+            { tipo: 'turno', fecha_hora: new Date(Date.now() - 600000).toISOString(), mensaje: 'Inicio de turno manana registrado' },
+            { tipo: 'produccion', fecha_hora: new Date(Date.now() - 900000).toISOString(), mensaje: rankingData[2].nombre + ' lleva 50% de su meta' },
+            { tipo: 'advertencia', fecha_hora: new Date(Date.now() - 1200000).toISOString(), mensaje: 'Revision de calidad pendiente en linea 2' },
+            { tipo: 'produccion', fecha_hora: new Date(Date.now() - 1500000).toISOString(), mensaje: rankingData[3].nombre + ' registro 8 cajas nuevas' },
+            { tipo: 'meta_cumplida', fecha_hora: new Date(Date.now() - 1800000).toISOString(), mensaje: rankingData[4].nombre + ' alcanzo su meta diaria' },
+            { tipo: 'turno', fecha_hora: new Date(Date.now() - 3600000).toISOString(), mensaje: 'Sistema de control iniciado correctamente' }
+        ];
+
+        // Initialize previous goal state
+        rankingData.forEach(w => {
+            const pct = w.meta > 0 ? (w.cajas / w.meta) * 100 : 0;
+            previousGoalState[w.trabajador_id] = pct >= 100;
+        });
+
+        renderRanking();
+        renderStats();
+        renderAlerts();
+        renderChart();
+        setConnectionStatus('disconnected');
+
+        // Simulate live updates for demo
+        setInterval(() => {
+            const idx = Math.floor(Math.random() * rankingData.length);
+            const worker = rankingData[idx];
+            const oldPct = worker.meta > 0 ? (worker.cajas / worker.meta) * 100 : 0;
+            worker.cajas += Math.floor(Math.random() * 5) + 1;
+            const newPct = worker.meta > 0 ? (worker.cajas / worker.meta) * 100 : 0;
+
+            // Check celebration
+            if (oldPct < 100 && newPct >= 100) {
+                triggerCelebration(worker.nombre, worker.cajas, worker.meta);
+                previousGoalState[worker.trabajador_id] = true;
+
+                alertsData.unshift({
+                    tipo: 'meta_cumplida',
+                    fecha_hora: new Date().toISOString(),
+                    mensaje: worker.nombre + ' alcanzo su meta diaria (' + worker.cajas + '/' + worker.meta + ')'
+                });
+                alertsData = alertsData.slice(0, 10);
+            }
+
+            rankingData.sort((a, b) => b.cajas - a.cajas);
+
+            // Recalc stats
+            const totalCajas = rankingData.reduce((s, w) => s + w.cajas, 0);
+            const metaTotal = rankingData.reduce((s, w) => s + w.meta, 0);
+            statsData.total_cajas = totalCajas;
+            statsData.promedio_por_persona = Math.round(totalCajas / rankingData.length);
+            statsData.meta_cumplida_pct = Math.round((totalCajas / metaTotal) * 100);
+            statsData.mejor_trabajador = rankingData[0].nombre;
+            statsData.mejor_trabajador_cajas = rankingData[0].cajas;
+
+            renderRanking();
+            renderStats();
+            renderAlerts();
+            renderChart();
+        }, 8000);
+    }
+
+    // ==========================================
+    // HELPERS
+    // ==========================================
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ==========================================
+    // START
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', init);
+
+})();
+</script>
+</body>
+</html>
