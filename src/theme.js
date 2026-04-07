@@ -16,7 +16,9 @@
         localStorage.setItem(STORAGE_KEY, theme);
         const btn = document.getElementById('themeToggle');
         if (btn) {
-            btn.textContent = theme === 'dark' ? '\u2600' : '\u263D';
+            btn.innerHTML = theme === 'dark'
+                ? '<span style="font-size:1.2rem">&#9788;</span> Claro'
+                : '<span style="font-size:1.2rem">&#9789;</span> Oscuro';
             btn.title = theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
         }
     }
@@ -30,7 +32,7 @@
         const btn = document.createElement('button');
         btn.id = 'themeToggle';
         btn.setAttribute('aria-label', 'Cambiar tema');
-        btn.style.cssText = 'position:fixed;top:15px;right:15px;z-index:10000;width:44px;height:44px;border-radius:50%;border:2px solid rgba(128,128,128,0.3);background:rgba(128,128,128,0.15);color:inherit;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.3s;backdrop-filter:blur(8px);';
+        btn.style.cssText = 'position:fixed;top:15px;right:15px;z-index:10000;padding:8px 16px;border-radius:25px;border:2px solid rgba(128,128,128,0.3);background:rgba(128,128,128,0.15);color:inherit;font-size:0.85rem;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.3s;backdrop-filter:blur(8px);';
         btn.addEventListener('click', toggleTheme);
         btn.addEventListener('mouseenter', function() { this.style.transform = 'scale(1.1)'; });
         btn.addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
