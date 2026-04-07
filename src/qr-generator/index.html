@@ -435,6 +435,7 @@
             .no-print,
             .nav-bar,
             .header,
+            #seccionCrearTrabajador,
             #seccionTrabajador,
             #seccionParametros,
             #seccionGenerar,
@@ -516,6 +517,58 @@
             .btn-primary { font-size: 0.9rem; padding: 14px; }
         }
 
+        /* ---------- COLLAPSIBLE ---------- */
+        .collapsible-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 0;
+            font-family: inherit;
+        }
+
+        .collapsible-toggle::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+
+        .collapsible-toggle .arrow {
+            transition: transform 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .collapsible-toggle.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease, padding 0.35s ease;
+        }
+
+        .collapsible-body.open {
+            max-height: 600px;
+            padding-top: 18px;
+        }
+
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 0.85rem;
+        }
+
         /* ---------- LOADING SPINNER ---------- */
         .spinner {
             display: inline-block;
@@ -555,6 +608,43 @@
             FRUTAS TROPICALES PIURA &mdash; Codigos QR
             <div class="subtitle" id="printSubtitle"></div>
         </div>
+
+        <!-- SECTION 0: CREATE WORKER -->
+        <section class="card no-print" id="seccionCrearTrabajador">
+            <button class="collapsible-toggle" id="toggleCrear" onclick="toggleCrearTrabajador()">
+                <span style="display:flex;align-items:center;gap:8px;">Crear Trabajador</span>
+                <span class="arrow">&#9660;</span>
+            </button>
+            <div class="collapsible-body" id="bodyCrear">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nuevoDni">DNI (8 digitos) *</label>
+                        <input type="text" id="nuevoDni" maxlength="8" pattern="\d{8}" placeholder="12345678" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nuevoNombres">Nombres *</label>
+                        <input type="text" id="nuevoNombres" placeholder="Ej: Juan Carlos" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nuevoApellidos">Apellidos *</label>
+                        <input type="text" id="nuevoApellidos" placeholder="Ej: Lopez Perez" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nuevoArea">Area</label>
+                        <input type="text" id="nuevoArea" value="empaque" placeholder="empaque">
+                    </div>
+                    <div class="form-group">
+                        <label for="nuevoEstacion">Estacion</label>
+                        <input type="number" id="nuevoEstacion" min="1" placeholder="1">
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" id="btnCrearTrabajador" onclick="crearTrabajador()" style="margin-top:8px;">
+                    CREAR TRABAJADOR
+                </button>
+            </div>
+        </section>
 
         <!-- SECTION 1: WORKER SELECTION -->
         <section class="card no-print" id="seccionTrabajador">
@@ -730,16 +820,35 @@
         //  CARGAR TRABAJADORES
         // =====================================================
         async function cargarTrabajadores() {
+            console.log('[cargarTrabajadores] Iniciando carga de trabajadores...');
             try {
+                if (!window.supabase) {
+                    throw new Error('Supabase CDN no se ha cargado correctamente');
+                }
+
                 const { data, error } = await supabase
                     .from('trabajadores')
                     .select('*')
                     .order('apellidos', { ascending: true });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('[cargarTrabajadores] Error de Supabase:', JSON.stringify(error));
+                    throw error;
+                }
 
                 trabajadores = data || [];
+                console.log(`[cargarTrabajadores] Se cargaron ${trabajadores.length} trabajadores`);
+
                 const select = document.getElementById('selectTrabajador');
+                // Limpiar opciones existentes excepto la primera (placeholder)
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+
+                if (trabajadores.length === 0) {
+                    console.warn('[cargarTrabajadores] No se encontraron trabajadores en la tabla');
+                    mostrarToast('No hay trabajadores registrados. Cree uno primero.', 'warning');
+                }
 
                 trabajadores.forEach(t => {
                     const opt = document.createElement('option');
@@ -750,8 +859,94 @@
 
                 select.addEventListener('change', seleccionarTrabajador);
             } catch (err) {
-                console.error('Error cargando trabajadores:', err);
-                mostrarToast('Error al conectar con la base de datos', 'error');
+                console.error('[cargarTrabajadores] Error cargando trabajadores:', err);
+                mostrarToast('Error al cargar trabajadores: ' + (err.message || 'Error desconocido'), 'error');
+            }
+        }
+
+        // =====================================================
+        //  CREAR TRABAJADOR
+        // =====================================================
+        function toggleCrearTrabajador() {
+            const toggle = document.getElementById('toggleCrear');
+            const body = document.getElementById('bodyCrear');
+            toggle.classList.toggle('active');
+            body.classList.toggle('open');
+        }
+
+        async function crearTrabajador() {
+            const dni = document.getElementById('nuevoDni').value.trim();
+            const nombres = document.getElementById('nuevoNombres').value.trim();
+            const apellidos = document.getElementById('nuevoApellidos').value.trim();
+            const area = document.getElementById('nuevoArea').value.trim() || 'empaque';
+            const estacion = document.getElementById('nuevoEstacion').value ? parseInt(document.getElementById('nuevoEstacion').value) : null;
+
+            // Validaciones
+            if (!dni || !/^\d{8}$/.test(dni)) {
+                mostrarToast('El DNI debe tener exactamente 8 digitos', 'warning');
+                return;
+            }
+            if (!nombres) {
+                mostrarToast('Ingrese los nombres del trabajador', 'warning');
+                return;
+            }
+            if (!apellidos) {
+                mostrarToast('Ingrese los apellidos del trabajador', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnCrearTrabajador');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Creando...';
+
+            try {
+                const nuevoTrabajador = { dni, nombres, apellidos, area };
+                if (estacion !== null) nuevoTrabajador.estacion = estacion;
+
+                const { data, error } = await supabase
+                    .from('trabajadores')
+                    .insert([nuevoTrabajador])
+                    .select();
+
+                if (error) {
+                    console.error('[crearTrabajador] Error:', JSON.stringify(error));
+                    if (error.message && error.message.includes('duplicate')) {
+                        mostrarToast('Ya existe un trabajador con ese DNI', 'error');
+                    } else {
+                        throw error;
+                    }
+                    return;
+                }
+
+                console.log('[crearTrabajador] Trabajador creado:', data);
+                mostrarToast(`Trabajador ${nombres} ${apellidos} creado exitosamente`, 'success');
+
+                // Limpiar formulario
+                document.getElementById('nuevoDni').value = '';
+                document.getElementById('nuevoNombres').value = '';
+                document.getElementById('nuevoApellidos').value = '';
+                document.getElementById('nuevoArea').value = 'empaque';
+                document.getElementById('nuevoEstacion').value = '';
+
+                // Cerrar panel
+                document.getElementById('toggleCrear').classList.remove('active');
+                document.getElementById('bodyCrear').classList.remove('open');
+
+                // Recargar dropdown
+                await cargarTrabajadores();
+
+                // Seleccionar automaticamente al nuevo trabajador
+                if (data && data.length > 0) {
+                    document.getElementById('selectTrabajador').value = data[0].id;
+                    seleccionarTrabajador.call(document.getElementById('selectTrabajador'));
+                }
+
+            } catch (err) {
+                console.error('[crearTrabajador] Error:', err);
+                mostrarToast('Error al crear trabajador: ' + (err.message || 'Error desconocido'), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'CREAR TRABAJADOR';
             }
         }
 
