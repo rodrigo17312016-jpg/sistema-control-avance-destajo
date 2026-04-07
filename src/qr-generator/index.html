@@ -752,6 +752,7 @@
     <div class="toast" id="toast"></div>
 
     <script>
+    (function() {
         // =====================================================
         //  CONFIGURACION SUPABASE
         // =====================================================
@@ -759,10 +760,10 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibnZyZnZjdWpzcm1pZnZscW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MDY3OTUsImV4cCI6MjA4OTA4Mjc5NX0.A7BilSrDzqe2rqz1Kh8fg5t-GVNxrLGYJK4IaMlVtBs';
         const SECRET_KEY   = 'FT_PIURA_2026_SECRET';
 
-        let supabase;
+        let db;
         function initSupabase() {
             if (window.supabase && window.supabase.createClient) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 return true;
             }
             return false;
@@ -835,11 +836,11 @@
         async function cargarTrabajadores() {
             console.log('[cargarTrabajadores] Iniciando carga de trabajadores...');
             try {
-                if (!window.supabase) {
+                if (!db) {
                     throw new Error('Supabase CDN no se ha cargado correctamente');
                 }
 
-                const { data, error } = await supabase
+                const { data, error } = await db
                     .from('trabajadores')
                     .select('*')
                     .order('apellidos', { ascending: true });
@@ -915,7 +916,7 @@
                 const nuevoTrabajador = { dni, nombres, apellidos, area };
                 if (estacion !== null) nuevoTrabajador.estacion = estacion;
 
-                const { data, error } = await supabase
+                const { data, error } = await db
                     .from('trabajadores')
                     .insert([nuevoTrabajador])
                     .select();
@@ -1028,7 +1029,7 @@
         // =====================================================
         async function verificarDuplicados(trabajadorId, desde, hasta) {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await db
                     .from('codigos_qr')
                     .select('numero_caja')
                     .eq('trabajador_id', trabajadorId)
@@ -1045,7 +1046,7 @@
         }
 
         async function obtenerTurnoId(tipoTurno) {
-            const { data, error } = await supabase
+            const { data, error } = await db
                 .from('turnos')
                 .select('id')
                 .eq('tipo_turno', tipoTurno)
@@ -1159,7 +1160,7 @@
                 // Insertar en Supabase
                 setProgress(85, 'Guardando en base de datos...');
 
-                const { error: insertError } = await supabase
+                const { error: insertError } = await db
                     .from('codigos_qr')
                     .insert(registros);
 
@@ -1196,20 +1197,20 @@
 
             try {
                 // Total generados
-                const { count: generados } = await supabase
+                const { count: generados } = await db
                     .from('codigos_qr')
                     .select('*', { count: 'exact', head: true })
                     .eq('trabajador_id', trabajadorId);
 
                 // Total impresos
-                const { count: impresos } = await supabase
+                const { count: impresos } = await db
                     .from('codigos_qr')
                     .select('*', { count: 'exact', head: true })
                     .eq('trabajador_id', trabajadorId)
                     .eq('estado', 'impreso');
 
                 // Total escaneados
-                const { count: escaneados } = await supabase
+                const { count: escaneados } = await db
                     .from('codigos_qr')
                     .select('*', { count: 'exact', head: true })
                     .eq('trabajador_id', trabajadorId)
@@ -1246,7 +1247,7 @@
             const cajas = qrGenerados.map(q => q.numeroCaja);
 
             try {
-                await supabase
+                await db
                     .from('codigos_qr')
                     .update({ estado: 'impreso', fecha_impresion: new Date().toISOString() })
                     .eq('trabajador_id', trabajadorId)
@@ -1268,6 +1269,14 @@
             qrGenerados = [];
             mostrarToast('Vista previa limpiada', 'success');
         }
+
+        // Exponer funciones al scope global para onclick
+        window.toggleCrearTrabajador = toggleCrearTrabajador;
+        window.crearTrabajador = crearTrabajador;
+        window.generarLote = generarLote;
+        window.imprimirQR = imprimirQR;
+        window.limpiarPreview = limpiarPreview;
+    })();
     </script>
     <script src="../theme.js"></script>
 </body>
