@@ -482,8 +482,8 @@
 // ============================================================
 // CONFIGURACION SUPABASE
 // ============================================================
-const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
-const SUPABASE_KEY = 'TU_ANON_KEY_AQUI';
+const SUPABASE_URL = 'https://obnvrfvcujsrmifvlqni.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibnZyZnZjdWpzcm1pZnZscW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MDY3OTUsImV4cCI6MjA4OTA4Mjc5NX0.A7BilSrDzqe2rqz1Kh8fg5t-GVNxrLGYJK4IaMlVtBs';
 
 let supabaseClient = null;
 try {
@@ -613,38 +613,43 @@ async function onScanSuccess(decodedText) {
         return;
     }
 
+    // Build codigo_unico from QR data: {dni}-{caja_padded}-{fecha}
+    const fecha = qrData.t ? qrData.t.split('T')[0].replace(/-/g, '') : new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const codigoUnico = `${qrData.d}-${String(qrData.c).padStart(4, '0')}-${fecha}`;
+
     try {
         if (!isOnline || !supabaseClient) throw new Error('offline');
 
         const { data, error } = await supabaseClient.rpc('fn_registrar_escaneo', {
-            qr_raw: decodedText
+            p_codigo_qr: codigoUnico,
+            p_escaneado_por: null
         });
 
         if (error) throw error;
 
-        if (data && data.ok) {
+        if (data && data.exito) {
             playBeepSuccess();
-            const nombre = data.trabajador || qrData.trabajador || 'Trabajador';
-            const caja = data.caja || qrData.caja || qrData.nro_caja || '--';
+            const nombre = data.trabajador_nombre || qrData.trabajador || 'Trabajador';
+            const caja = data.numero_caja || qrData.caja || qrData.nro_caja || '--';
             mostrarResultado(true, nombre, `Caja #${caja} registrada`);
             agregarHistorial(true, nombre, caja, '');
             stats.total++;
             stats.ultimaCaja = caja;
         } else {
             playBeepError();
-            const msg = (data && data.mensaje) || 'Caja duplicada o invalida';
+            const msg = (data && data.error) || data.mensaje || 'Caja duplicada o invalida';
             mostrarResultado(false, msg, '');
-            agregarHistorial(false, msg, qrData.caja || '--', msg);
+            agregarHistorial(false, msg, qrData.c || '--', msg);
             stats.errores++;
         }
     } catch (err) {
         // Offline or error: store locally
         if (err.message === 'offline' || !navigator.onLine) {
             isOnline = false;
-            guardarPendiente(decodedText, qrData);
+            guardarPendiente(codigoUnico || decodedText, qrData);
             playBeepSuccess();
-            const nombre = qrData.trabajador || 'Trabajador';
-            const caja = qrData.caja || qrData.nro_caja || '--';
+            const nombre = `DNI ${qrData.d}` || 'Trabajador';
+            const caja = qrData.c || '--';
             mostrarResultado(true, nombre, `Caja #${caja} (guardada offline)`);
             agregarHistorial(true, nombre + ' (offline)', caja, '');
             stats.total++;
@@ -760,14 +765,15 @@ async function registroManual() {
 
         const { data, error } = await supabaseClient.rpc('fn_registro_manual', {
             p_dni: dni,
-            p_caja: caja
+            p_numero_caja: parseInt(caja),
+            p_observaciones: 'Registro manual desde scanner'
         });
 
         if (error) throw error;
 
-        if (data && data.ok) {
+        if (data && data.exito) {
             playBeepSuccess();
-            const nombre = data.trabajador || `DNI ${dni}`;
+            const nombre = data.trabajador_nombre || `DNI ${dni}`;
             mostrarResultado(true, nombre, `Caja #${caja} registrada manualmente`);
             agregarHistorial(true, nombre + ' (manual)', caja, '');
             stats.total++;
@@ -775,7 +781,7 @@ async function registroManual() {
             if (!stats.startTime) stats.startTime = Date.now();
         } else {
             playBeepError();
-            const msg = (data && data.mensaje) || 'Error en registro';
+            const msg = (data && data.error) || data.mensaje || 'Error en registro';
             mostrarResultado(false, msg, '');
             agregarHistorial(false, msg, caja, msg);
             stats.errores++;
@@ -847,12 +853,15 @@ async function sincronizarPendientes() {
             if (item.data && item.data.manual) {
                 const { error } = await supabaseClient.rpc('fn_registro_manual', {
                     p_dni: item.data.dni,
-                    p_caja: item.data.caja
+                    p_numero_caja: parseInt(item.data.caja),
+                    p_observaciones: 'Sync offline - registro manual'
                 });
                 if (error) throw error;
             } else {
+                // item.raw is already the codigo_unico
                 const { error } = await supabaseClient.rpc('fn_registrar_escaneo', {
-                    qr_raw: item.raw
+                    p_codigo_qr: item.raw,
+                    p_escaneado_por: null
                 });
                 if (error) throw error;
             }

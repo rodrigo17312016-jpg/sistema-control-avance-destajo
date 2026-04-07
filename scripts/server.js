@@ -30,6 +30,7 @@ const MIME_TYPES = {
 const server = http.createServer((req, res) => {
     let urlPath = req.url.split('?')[0];
     if (urlPath === '/') urlPath = '/index.html';
+    if (urlPath.endsWith('/')) urlPath += 'index.html';
 
     const filePath = path.join(SRC_DIR, urlPath);
     const ext = path.extname(filePath).toLowerCase();

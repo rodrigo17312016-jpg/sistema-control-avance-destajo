@@ -665,8 +665,8 @@
         // =====================================================
         //  CONFIGURACION SUPABASE
         // =====================================================
-        const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
-        const SUPABASE_KEY = 'TU_ANON_KEY_AQUI';
+        const SUPABASE_URL = 'https://obnvrfvcujsrmifvlqni.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibnZyZnZjdWpzcm1pZnZscW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MDY3OTUsImV4cCI6MjA4OTA4Mjc5NX0.A7BilSrDzqe2rqz1Kh8fg5t-GVNxrLGYJK4IaMlVtBs';
         const SECRET_KEY   = 'FT_PIURA_2026_SECRET';
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -681,12 +681,18 @@
         // =====================================================
         //  INIT
         // =====================================================
-        document.addEventListener('DOMContentLoaded', () => {
+        function inicializar() {
             const hoy = new Date().toISOString().split('T')[0];
             document.getElementById('inputFecha').value = hoy;
             document.getElementById('fechaHoy').textContent = formatearFecha(hoy);
             cargarTrabajadores();
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', inicializar);
+        } else {
+            inicializar();
+        }
 
         // =====================================================
         //  HELPERS
@@ -728,7 +734,7 @@
                 const { data, error } = await supabase
                     .from('trabajadores')
                     .select('*')
-                    .order('nombre', { ascending: true });
+                    .order('apellidos', { ascending: true });
 
                 if (error) throw error;
 
@@ -738,7 +744,7 @@
                 trabajadores.forEach(t => {
                     const opt = document.createElement('option');
                     opt.value = t.id;
-                    opt.textContent = `${t.nombre} - DNI: ${t.dni}`;
+                    opt.textContent = `${t.nombres} ${t.apellidos} - DNI: ${t.dni}`;
                     select.appendChild(opt);
                 });
 
@@ -766,7 +772,7 @@
             if (!trabajadorSeleccionado) return;
 
             document.getElementById('infoDni').textContent = trabajadorSeleccionado.dni || '-';
-            document.getElementById('infoNombre').textContent = trabajadorSeleccionado.nombre || '-';
+            document.getElementById('infoNombre').textContent = `${trabajadorSeleccionado.nombres} ${trabajadorSeleccionado.apellidos}` || '-';
             document.getElementById('infoArea').textContent = trabajadorSeleccionado.area || '-';
             document.getElementById('infoEstacion').textContent = trabajadorSeleccionado.estacion || '-';
             info.classList.add('visible');
@@ -813,17 +819,14 @@
         // =====================================================
         //  VERIFICAR DUPLICADOS
         // =====================================================
-        async function verificarDuplicados(dni, desde, hasta, turno, fecha) {
+        async function verificarDuplicados(trabajadorId, desde, hasta) {
             try {
                 const { data, error } = await supabase
                     .from('codigos_qr')
                     .select('numero_caja')
-                    .eq('dni', dni)
-                    .eq('turno', turno)
+                    .eq('trabajador_id', trabajadorId)
                     .gte('numero_caja', desde)
-                    .lte('numero_caja', hasta)
-                    .gte('fecha', fecha)
-                    .lt('fecha', fecha + 'T23:59:59');
+                    .lte('numero_caja', hasta);
 
                 if (error) throw error;
 
@@ -832,6 +835,17 @@
                 console.error('Error verificando duplicados:', err);
                 return [];
             }
+        }
+
+        async function obtenerTurnoId(tipoTurno) {
+            const { data, error } = await supabase
+                .from('turnos')
+                .select('id')
+                .eq('tipo_turno', tipoTurno)
+                .limit(1)
+                .single();
+            if (error) throw error;
+            return data.id;
         }
 
         // =====================================================
@@ -847,7 +861,8 @@
             setProgress(0, 'Verificando duplicados...');
 
             const dni    = trabajadorSeleccionado.dni;
-            const nombre = trabajadorSeleccionado.nombre;
+            const nombre = `${trabajadorSeleccionado.nombres} ${trabajadorSeleccionado.apellidos}`;
+            const trabajadorId = trabajadorSeleccionado.id;
             const desde  = parseInt(document.getElementById('desdeCaja').value);
             const hasta  = parseInt(document.getElementById('hastaCaja').value);
             const turno  = document.getElementById('selectTurno').value;
@@ -855,8 +870,11 @@
             const total  = hasta - desde + 1;
 
             try {
+                // Obtener turno_id
+                const turnoId = await obtenerTurnoId(turno);
+
                 // Verificar duplicados
-                const duplicados = await verificarDuplicados(dni, desde, hasta, turno, fecha);
+                const duplicados = await verificarDuplicados(trabajadorId, desde, hasta);
                 if (duplicados.length > 0) {
                     const cajasDup = duplicados.map(d => d.numero_caja).join(', ');
                     mostrarToast(`Ya existen QR para las cajas: ${cajasDup}`, 'error');
@@ -881,6 +899,8 @@
                     const fullHash   = await sha256Hash(rawHash);
                     const hash       = fullHash.substring(0, 16);
 
+                    const codigoUnico = `${dni}-${String(numeroCaja).padStart(4,'0')}-${fecha.replace(/-/g,'')}`;
+
                     const qrData = JSON.stringify({
                         v: 2,
                         d: dni,
@@ -904,24 +924,21 @@
 
                     grid.appendChild(item);
 
-                    // Generar QR en canvas
+                    // Generar QR en canvas con nivel H de correccion
                     await QRCode.toCanvas(canvas, qrData, {
                         width: 160,
                         margin: 1,
                         color: { dark: '#000000', light: '#ffffff' },
-                        errorCorrectionLevel: 'M'
+                        errorCorrectionLevel: 'H'
                     });
 
-                    // Preparar registro para BD
+                    // Preparar registro para BD (schema codigos_qr)
                     registros.push({
-                        dni: dni,
-                        nombre: nombre,
+                        trabajador_id: trabajadorId,
+                        turno_id: turnoId,
                         numero_caja: numeroCaja,
-                        turno: turno,
-                        fecha: fecha,
-                        timestamp: timestamp,
-                        hash: hash,
-                        qr_data: qrData,
+                        codigo_unico: codigoUnico,
+                        hash_verificacion: fullHash,
                         estado: 'generado'
                     });
 
@@ -968,31 +985,27 @@
         async function cargarEstadisticas() {
             if (!trabajadorSeleccionado) return;
 
-            const dni   = trabajadorSeleccionado.dni;
-            const fecha = document.getElementById('inputFecha').value;
+            const trabajadorId = trabajadorSeleccionado.id;
 
             try {
-                // Total generados hoy
+                // Total generados
                 const { count: generados } = await supabase
                     .from('codigos_qr')
                     .select('*', { count: 'exact', head: true })
-                    .eq('dni', dni)
-                    .eq('fecha', fecha);
+                    .eq('trabajador_id', trabajadorId);
 
-                // Total impresos hoy
+                // Total impresos
                 const { count: impresos } = await supabase
                     .from('codigos_qr')
                     .select('*', { count: 'exact', head: true })
-                    .eq('dni', dni)
-                    .eq('fecha', fecha)
+                    .eq('trabajador_id', trabajadorId)
                     .eq('estado', 'impreso');
 
-                // Total escaneados hoy
+                // Total escaneados
                 const { count: escaneados } = await supabase
                     .from('codigos_qr')
                     .select('*', { count: 'exact', head: true })
-                    .eq('dni', dni)
-                    .eq('fecha', fecha)
+                    .eq('trabajador_id', trabajadorId)
                     .eq('estado', 'escaneado');
 
                 document.getElementById('statGenerados').textContent = generados || 0;
@@ -1022,16 +1035,14 @@
         async function marcarImpresos() {
             if (!trabajadorSeleccionado) return;
 
-            const dni   = trabajadorSeleccionado.dni;
-            const fecha = document.getElementById('inputFecha').value;
+            const trabajadorId = trabajadorSeleccionado.id;
             const cajas = qrGenerados.map(q => q.numeroCaja);
 
             try {
                 await supabase
                     .from('codigos_qr')
-                    .update({ estado: 'impreso' })
-                    .eq('dni', dni)
-                    .eq('fecha', fecha)
+                    .update({ estado: 'impreso', fecha_impresion: new Date().toISOString() })
+                    .eq('trabajador_id', trabajadorId)
                     .in('numero_caja', cajas)
                     .eq('estado', 'generado');
 
