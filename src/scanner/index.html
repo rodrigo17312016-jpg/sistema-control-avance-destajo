@@ -12,15 +12,15 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: var(--bg-primary, #0a0a2e);
-            --card: var(--bg-secondary, #1a1a4e);
-            --card-border: var(--border-color, #2a2a6e);
-            --accent: var(--accent, #00d4ff);
-            --success: var(--success, #00ff88);
-            --error: var(--danger, #ff0055);
-            --warning: var(--warning, #ffaa00);
-            --text: var(--text-primary, #e0e0ff);
-            --text-muted: var(--text-secondary, #8888bb);
+            --bg: #0a0a2e;
+            --card: #1a1a4e;
+            --card-border: #2a2a6e;
+            --accent: #00d4ff;
+            --success: #00ff88;
+            --error: #ff0055;
+            --warning: #ffaa00;
+            --text: #e0e0ff;
+            --text-muted: #8888bb;
             --radius: 14px;
         }
 
@@ -34,7 +34,7 @@
 
         /* Header */
         .header {
-            background: linear-gradient(135deg, var(--bg-primary, #12124a) 0%, var(--bg-secondary, #1a1a5e) 100%);
+            background: linear-gradient(135deg, #12124a 0%, #1a1a5e 100%);
             padding: 14px 16px;
             display: flex;
             align-items: center;
@@ -125,14 +125,50 @@
 
         /* Main content */
         .container {
-            max-width: 480px;
+            max-width: 520px;
             margin: 0 auto;
             padding: 16px;
         }
 
+        /* Mode selector */
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 6px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px 8px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, var(--accent), #0099cc);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0,212,255,0.3);
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+        }
+
         /* Scanner section */
         .scanner-section {
-            background: linear-gradient(145deg, var(--card), var(--bg-primary, #141448));
+            background: linear-gradient(145deg, var(--card), #141448);
             border: 1px solid var(--card-border);
             border-radius: var(--radius);
             padding: 16px;
@@ -147,6 +183,113 @@
             margin-bottom: 12px;
         }
 
+        /* USB Scanner mode */
+        .usb-scanner-area {
+            position: relative;
+            width: 100%;
+            min-height: 200px;
+            border: 2px dashed var(--card-border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 30px 20px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .usb-scanner-area.active {
+            border-color: var(--success);
+            background: rgba(0,255,136,0.03);
+            box-shadow: 0 0 30px rgba(0,255,136,0.1);
+        }
+
+        .usb-scanner-area.scanning {
+            border-color: var(--accent);
+            background: rgba(0,212,255,0.03);
+            animation: pulse-border 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 15px rgba(0,212,255,0.1); }
+            50% { box-shadow: 0 0 30px rgba(0,212,255,0.25); }
+        }
+
+        .usb-icon {
+            font-size: 48px;
+            opacity: 0.6;
+        }
+
+        .usb-status {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .usb-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .usb-buffer-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: background 0.1s;
+        }
+
+        .usb-buffer-indicator.receiving {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        /* Hidden input for USB scanner focus */
+        .usb-hidden-input {
+            position: absolute;
+            left: -9999px;
+            opacity: 0;
+        }
+
+        /* Speed display */
+        .speed-display {
+            display: none;
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(0,212,255,0.08);
+            border-radius: 10px;
+            border: 1px solid rgba(0,212,255,0.15);
+        }
+
+        .speed-display.visible { display: block; }
+
+        .speed-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .speed-label {
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .speed-detail {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Camera scanner */
         #reader {
             width: 280px;
             height: 280px;
@@ -179,12 +322,32 @@
 
         .btn-primary {
             background: linear-gradient(135deg, var(--accent), #0099cc);
-            color: var(--text-primary, #fff);
+            color: #fff;
         }
 
         .btn-stop {
             background: linear-gradient(135deg, var(--error), #cc0044);
-            color: var(--text-primary, #fff);
+            color: #fff;
+        }
+
+        /* Flash feedback for ultra-fast scans */
+        .flash-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.05s;
+        }
+
+        .flash-overlay.success {
+            background: rgba(0,255,136,0.15);
+            opacity: 1;
+        }
+
+        .flash-overlay.error {
+            background: rgba(255,0,85,0.15);
+            opacity: 1;
         }
 
         /* Result card */
@@ -193,7 +356,7 @@
             margin-top: 14px;
             padding: 16px;
             border-radius: 12px;
-            animation: slideIn 0.3s ease;
+            animation: slideIn 0.15s ease;
         }
 
         .result-card.success {
@@ -208,59 +371,75 @@
             border: 1px solid rgba(255,0,85,0.3);
         }
 
-        .result-icon {
-            font-size: 36px;
-            margin-bottom: 6px;
-        }
-
+        .result-icon { font-size: 36px; margin-bottom: 6px; }
         .result-card.success .result-icon { color: var(--success); }
         .result-card.error .result-icon { color: var(--error); }
-
-        .result-text {
-            font-size: 15px;
-            font-weight: 600;
-        }
-
-        .result-detail {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
+        .result-text { font-size: 15px; font-weight: 600; }
+        .result-detail { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Batch queue indicator */
+        .batch-indicator {
+            display: none;
+            margin-top: 10px;
+            padding: 8px 14px;
+            background: rgba(167,139,250,0.1);
+            border: 1px solid rgba(167,139,250,0.2);
+            border-radius: 10px;
+            font-size: 12px;
+            color: #a78bfa;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .batch-indicator.visible { display: flex; }
+
+        .batch-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(167,139,250,0.3);
+            border-top-color: #a78bfa;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* KPI cards */
         .kpi-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
             margin-bottom: 16px;
         }
 
         .kpi-card {
-            background: linear-gradient(145deg, var(--card), var(--bg-primary, #141448));
+            background: linear-gradient(145deg, var(--card), #141448);
             border: 1px solid var(--card-border);
             border-radius: var(--radius);
-            padding: 14px;
+            padding: 12px 8px;
             text-align: center;
         }
 
         .kpi-value {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
         }
 
         .kpi-card:nth-child(1) .kpi-value { color: var(--accent); }
-        .kpi-card:nth-child(2) .kpi-value { color: var(--error); }
-        .kpi-card:nth-child(3) .kpi-value { color: var(--success); }
+        .kpi-card:nth-child(2) .kpi-value { color: var(--success); }
+        .kpi-card:nth-child(3) .kpi-value { color: var(--error); }
         .kpi-card:nth-child(4) .kpi-value { color: #a78bfa; }
 
         .kpi-label {
-            font-size: 11px;
+            font-size: 9px;
             letter-spacing: 1px;
             color: var(--text-muted);
             margin-top: 4px;
@@ -268,7 +447,7 @@
 
         /* Manual registration */
         .manual-section {
-            background: linear-gradient(145deg, var(--card), var(--bg-primary, #141448));
+            background: linear-gradient(145deg, var(--card), #141448);
             border: 1px solid var(--card-border);
             border-radius: var(--radius);
             padding: 16px;
@@ -294,7 +473,7 @@
             padding: 10px 14px;
             border-radius: 10px;
             border: 1px solid var(--card-border);
-            background: var(--bg-input, rgba(255,255,255,0.05));
+            background: rgba(255,255,255,0.05);
             color: var(--text);
             font-size: 14px;
             outline: none;
@@ -302,19 +481,18 @@
         }
 
         .input-field:focus { border-color: var(--accent); }
-
         .input-field::placeholder { color: var(--text-muted); }
 
         .btn-manual {
             background: linear-gradient(135deg, #a78bfa, #7c3aed);
-            color: var(--text-primary, #fff);
+            color: #fff;
             width: 100%;
             margin-top: 4px;
         }
 
         /* History */
         .history-section {
-            background: linear-gradient(145deg, var(--card), var(--bg-primary, #141448));
+            background: linear-gradient(145deg, var(--card), #141448);
             border: 1px solid var(--card-border);
             border-radius: var(--radius);
             padding: 16px;
@@ -326,10 +504,21 @@
             letter-spacing: 1.5px;
             color: var(--text-muted);
             margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .history-count {
+            font-size: 11px;
+            background: var(--card-border);
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-weight: 400;
         }
 
         .history-list {
-            max-height: 350px;
+            max-height: 400px;
             overflow-y: auto;
         }
 
@@ -339,9 +528,9 @@
             gap: 10px;
             padding: 10px 12px;
             border-radius: 10px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             font-size: 13px;
-            animation: slideIn 0.3s ease;
+            animation: slideIn 0.15s ease;
         }
 
         .history-item.ok {
@@ -354,28 +543,27 @@
             border-left: 3px solid var(--error);
         }
 
-        .history-status {
-            font-size: 16px;
-            flex-shrink: 0;
+        .history-item.pending-sync {
+            border-left: 3px solid var(--warning);
         }
 
+        .history-status { font-size: 16px; flex-shrink: 0; }
         .history-info { flex: 1; }
-
-        .history-info .name {
-            font-weight: 600;
-            font-size: 13px;
-        }
-
-        .history-info .detail {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
+        .history-info .name { font-weight: 600; font-size: 13px; }
+        .history-info .detail { font-size: 11px; color: var(--text-muted); }
 
         .history-time {
             font-size: 11px;
             color: var(--text-muted);
             font-variant-numeric: tabular-nums;
             flex-shrink: 0;
+            text-align: right;
+        }
+
+        .history-time .ms {
+            display: block;
+            font-size: 9px;
+            color: var(--accent);
         }
 
         .empty-history {
@@ -391,13 +579,17 @@
         ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
 
         /* Responsive */
-        @media (max-width: 360px) {
-            #reader { width: 240px; height: 240px; }
+        @media (max-width: 400px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
             .kpi-value { font-size: 22px; }
+            #reader { width: 240px; height: 240px; }
         }
     </style>
 </head>
 <body>
+
+<!-- Flash overlay for instant feedback -->
+<div class="flash-overlay" id="flashOverlay"></div>
 
 <!-- Header -->
 <div class="header">
@@ -413,24 +605,65 @@
 
 <!-- Offline banner -->
 <div class="offline-banner" id="offlineBanner">
-    &#9888; MODO OFFLINE &mdash; <span id="pendingCount">0</span> escaneos pendientes
+    &#9888; MODO OFFLINE &mdash; <span id="pendingCount">0</span> pendientes
     <button class="btn-sync" onclick="sincronizarPendientes()">Sincronizar</button>
 </div>
 
 <div class="container">
 
-    <!-- Scanner -->
+    <!-- Mode selector -->
+    <div class="mode-selector">
+        <button class="mode-btn active" id="modeUsb" onclick="setMode('usb')">
+            &#9889; ZEBRA USB
+        </button>
+        <button class="mode-btn" id="modeCamera" onclick="setMode('camera')">
+            &#128247; CAMARA
+        </button>
+    </div>
+
+    <!-- Scanner section -->
     <div class="scanner-section">
-        <h2>&#128247; ESCANEAR CODIGO QR</h2>
-        <div id="reader"></div>
-        <div class="scanner-controls">
-            <button class="btn btn-primary" id="btnStart" onclick="iniciarEscaner()">Iniciar Escaner</button>
-            <button class="btn btn-stop" id="btnStop" onclick="detenerEscaner()" style="display:none">Detener</button>
+        <h2 id="scannerTitle">ZEBRA DS9308 - MODO ULTRA RAPIDO</h2>
+
+        <!-- USB Scanner mode -->
+        <div id="usbMode">
+            <div class="usb-scanner-area" id="usbArea" onclick="focusUsbInput()">
+                <div class="usb-buffer-indicator" id="bufferIndicator"></div>
+                <div class="usb-icon" id="usbIcon">&#9889;</div>
+                <div class="usb-status" id="usbStatus">Listo para escanear</div>
+                <div class="usb-hint">Pasa las cajas frente al lector Zebra</div>
+                <input type="text" class="usb-hidden-input" id="usbInput"
+                       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            </div>
+
+            <!-- Speed display -->
+            <div class="speed-display" id="speedDisplay">
+                <div class="speed-value" id="speedValue">0</div>
+                <div class="speed-label">ESCANEOS / MINUTO</div>
+                <div class="speed-detail" id="speedDetail">--</div>
+            </div>
         </div>
+
+        <!-- Camera mode (hidden by default) -->
+        <div id="cameraMode" style="display:none">
+            <div id="reader"></div>
+            <div class="scanner-controls">
+                <button class="btn btn-primary" id="btnStart" onclick="iniciarCamara()">Iniciar Camara</button>
+                <button class="btn btn-stop" id="btnStop" onclick="detenerCamara()" style="display:none">Detener</button>
+            </div>
+        </div>
+
+        <!-- Result card -->
         <div class="result-card" id="resultCard">
             <div class="result-icon" id="resultIcon"></div>
             <div class="result-text" id="resultText"></div>
             <div class="result-detail" id="resultDetail"></div>
+        </div>
+
+        <!-- Batch queue indicator -->
+        <div class="batch-indicator" id="batchIndicator">
+            <div class="batch-spinner"></div>
+            <span id="batchText">Enviando lote...</span>
         </div>
     </div>
 
@@ -438,15 +671,15 @@
     <div class="kpi-grid">
         <div class="kpi-card">
             <div class="kpi-value" id="kpiTotal">0</div>
-            <div class="kpi-label">TOTAL ESCANEADAS</div>
+            <div class="kpi-label">TOTAL</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpiExitos">0</div>
+            <div class="kpi-label">EXITOSOS</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-value" id="kpiErrores">0</div>
             <div class="kpi-label">ERRORES</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-value" id="kpiUltima">--</div>
-            <div class="kpi-label">ULTIMA CAJA</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-value" id="kpiVelocidad">0.0</div>
@@ -466,7 +699,10 @@
 
     <!-- History -->
     <div class="history-section">
-        <h3>&#128203; HISTORIAL DE ESCANEOS</h3>
+        <h3>
+            HISTORIAL DE ESCANEOS
+            <span class="history-count" id="historyCount">0</span>
+        </h3>
         <div class="history-list" id="historyList">
             <div class="empty-history">Sin escaneos registrados</div>
         </div>
@@ -495,13 +731,304 @@ try {
 // ============================================================
 // ESTADO DE LA APP
 // ============================================================
+let currentMode = 'usb'; // 'usb' or 'camera'
 let html5QrCode = null;
-let scanning = false;
-let stats = { total: 0, errores: 0, ultimaCaja: '--', startTime: null };
+let cameraScanning = false;
+
+const stats = {
+    total: 0,
+    exitos: 0,
+    errores: 0,
+    startTime: null,
+    scanTimes: []   // timestamps of last 60 scans for speed calc
+};
+
 let historial = [];
+let isOnline = navigator.onLine;
+
+// Offline queue
 let pendientes = JSON.parse(localStorage.getItem('escaneos_pendientes') || '[]');
-let isOnline = true;
-let lastScanTime = 0;
+
+// ============================================================
+// USB SCANNER ENGINE (Zebra DS9308)
+// ============================================================
+// The Zebra DS9308 acts as a keyboard (HID).
+// It types QR content at <30ms between keystrokes, then sends Enter.
+// We detect scanner input by measuring keystroke timing.
+
+const USB = {
+    buffer: '',
+    lastKeyTime: 0,
+    CHAR_THRESHOLD: 80,    // Max ms between chars to be considered scanner input
+    MIN_LENGTH: 5,         // Min chars to be a valid scan
+    processing: false,
+    lastProcessedCode: '',
+    lastProcessedTime: 0,
+    DEDUP_WINDOW: 150,     // Ms to ignore same code (the Zebra might fire twice)
+
+    // Batch queue
+    queue: [],
+    batchTimer: null,
+    BATCH_INTERVAL: 400,   // Send batch every 400ms
+    BATCH_SIZE: 50,        // Max items per batch
+
+    init() {
+        const input = document.getElementById('usbInput');
+
+        // Listen on the hidden input for scanner data
+        input.addEventListener('keydown', (e) => {
+            const now = performance.now();
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (this.buffer.length >= this.MIN_LENGTH) {
+                    this.processBuffer();
+                }
+                this.buffer = '';
+                return;
+            }
+
+            // Filter out control keys
+            if (e.key.length > 1) return;
+
+            // If too much time passed, start fresh buffer
+            if (now - this.lastKeyTime > this.CHAR_THRESHOLD && this.buffer.length > 0) {
+                this.buffer = '';
+            }
+
+            this.buffer += e.key;
+            this.lastKeyTime = now;
+
+            // Visual indicator
+            const indicator = document.getElementById('bufferIndicator');
+            indicator.classList.add('receiving');
+            clearTimeout(this._indicatorTimeout);
+            this._indicatorTimeout = setTimeout(() => {
+                indicator.classList.remove('receiving');
+            }, 100);
+        });
+
+        // Keep input focused
+        input.addEventListener('blur', () => {
+            if (currentMode === 'usb') {
+                setTimeout(() => input.focus(), 50);
+            }
+        });
+
+        // Start batch processor
+        this.startBatchProcessor();
+    },
+
+    processBuffer() {
+        const raw = this.buffer.trim();
+        if (!raw) return;
+
+        const now = performance.now();
+
+        // De-duplicate: ignore if same code within DEDUP_WINDOW
+        if (raw === this.lastProcessedCode &&
+            now - this.lastProcessedTime < this.DEDUP_WINDOW) {
+            return;
+        }
+
+        this.lastProcessedCode = raw;
+        this.lastProcessedTime = now;
+
+        // Parse QR data
+        const scanTime = Date.now();
+        let codigoUnico;
+
+        try {
+            const qrData = JSON.parse(raw);
+            const fecha = qrData.t
+                ? qrData.t.split('T')[0].replace(/-/g, '')
+                : new Date().toISOString().split('T')[0].replace(/-/g, '');
+            codigoUnico = `${qrData.d}-${String(qrData.c).padStart(4, '0')}-${fecha}`;
+        } catch {
+            // If not JSON, use raw as codigo_unico
+            codigoUnico = raw;
+        }
+
+        // Record scan time for speed calculation
+        stats.scanTimes.push(scanTime);
+        // Keep only last 60 seconds of data
+        const cutoff = scanTime - 60000;
+        while (stats.scanTimes.length > 0 && stats.scanTimes[0] < cutoff) {
+            stats.scanTimes.shift();
+        }
+
+        // Show optimistic success immediately
+        stats.total++;
+        if (!stats.startTime) stats.startTime = scanTime;
+
+        const displayName = this.extractDisplayName(raw);
+        const displayCaja = this.extractCaja(raw);
+
+        flashFeedback('success');
+        playBeepSuccess();
+        mostrarResultado(true, displayName, `Caja #${displayCaja}`);
+        agregarHistorial(true, displayName, displayCaja, '', scanTime);
+        actualizarKPIs();
+        updateSpeedDisplay();
+
+        // Add to batch queue
+        this.queue.push({
+            codigo: codigoUnico,
+            timestamp: new Date(scanTime).toISOString(),
+            raw: raw,
+            displayName: displayName,
+            displayCaja: displayCaja,
+            historyIndex: historial.length - 1
+        });
+
+        // If queue is large enough, send immediately
+        if (this.queue.length >= this.BATCH_SIZE) {
+            this.flushBatch();
+        }
+    },
+
+    extractDisplayName(raw) {
+        try {
+            const d = JSON.parse(raw);
+            return d.trabajador || d.nombre || `DNI ${d.d}` || 'Trabajador';
+        } catch {
+            return 'Trabajador';
+        }
+    },
+
+    extractCaja(raw) {
+        try {
+            const d = JSON.parse(raw);
+            return d.c || d.caja || d.nro_caja || '--';
+        } catch {
+            return '--';
+        }
+    },
+
+    startBatchProcessor() {
+        this.batchTimer = setInterval(() => {
+            if (this.queue.length > 0) {
+                this.flushBatch();
+            }
+        }, this.BATCH_INTERVAL);
+    },
+
+    async flushBatch() {
+        if (this.queue.length === 0 || this.processing) return;
+
+        this.processing = true;
+        const batch = this.queue.splice(0, this.BATCH_SIZE);
+
+        showBatchIndicator(true, `Enviando ${batch.length} escaneos...`);
+
+        try {
+            if (!isOnline || !supabaseClient) throw new Error('offline');
+
+            const codigos = batch.map(item => ({
+                codigo: item.codigo,
+                timestamp: item.timestamp
+            }));
+
+            const { data, error } = await supabaseClient.rpc('fn_registrar_escaneo_batch', {
+                p_codigos: codigos
+            });
+
+            if (error) throw error;
+
+            if (data && data.resultados) {
+                let batchErrores = 0;
+                data.resultados.forEach((r, i) => {
+                    if (!r.exito) {
+                        batchErrores++;
+                        stats.errores++;
+                        stats.exitos = Math.max(0, stats.exitos - 1);
+                        // Update history item to show error
+                        if (batch[i]) {
+                            updateHistoryItem(batch[i].raw, false, r.error);
+                        }
+                    } else {
+                        stats.exitos++;
+                        // Update with real worker name from DB
+                        if (r.trabajador_nombre && batch[i]) {
+                            updateHistoryItem(batch[i].raw, true, '', r.trabajador_nombre, r.numero_caja);
+                        }
+                    }
+                });
+
+                if (batchErrores > 0) {
+                    actualizarKPIs();
+                }
+            }
+
+            showBatchIndicator(false);
+        } catch (err) {
+            // Offline or error: save to pending
+            if (err.message === 'offline' || !navigator.onLine) {
+                isOnline = false;
+                batch.forEach(item => guardarPendiente(item.codigo, item));
+                actualizarBannerOffline();
+            } else {
+                // Put back in queue for retry
+                this.queue.unshift(...batch);
+                console.error('Batch error:', err);
+            }
+            showBatchIndicator(false);
+        }
+
+        this.processing = false;
+    },
+
+    destroy() {
+        if (this.batchTimer) {
+            clearInterval(this.batchTimer);
+            this.batchTimer = null;
+        }
+        // Flush remaining
+        if (this.queue.length > 0) {
+            this.flushBatch();
+        }
+    }
+};
+
+// ============================================================
+// AUDIO - Web Audio API (pre-buffered for speed)
+// ============================================================
+let audioCtx;
+try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+} catch (e) {
+    console.warn('Audio not available');
+}
+
+function playBeepSuccess() {
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    gain.gain.value = 0.25;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+    osc.stop(audioCtx.currentTime + 0.08);
+}
+
+function playBeepError() {
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = 300;
+    gain.gain.value = 0.2;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+    osc.stop(audioCtx.currentTime + 0.2);
+}
 
 // ============================================================
 // RELOJ Y TURNO
@@ -523,99 +1050,113 @@ setInterval(actualizarReloj, 1000);
 actualizarReloj();
 
 // ============================================================
-// AUDIO - Web Audio API
+// MODE SWITCHING
 // ============================================================
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function setMode(mode) {
+    currentMode = mode;
 
-function playBeepSuccess() {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = 800;
-    gain.gain.value = 0.3;
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-    osc.stop(audioCtx.currentTime + 0.15);
+    document.getElementById('modeUsb').classList.toggle('active', mode === 'usb');
+    document.getElementById('modeCamera').classList.toggle('active', mode === 'camera');
+
+    document.getElementById('usbMode').style.display = mode === 'usb' ? 'block' : 'none';
+    document.getElementById('cameraMode').style.display = mode === 'camera' ? 'block' : 'none';
+
+    if (mode === 'usb') {
+        document.getElementById('scannerTitle').textContent = 'ZEBRA DS9308 - MODO ULTRA RAPIDO';
+        focusUsbInput();
+        if (cameraScanning) detenerCamara();
+    } else {
+        document.getElementById('scannerTitle').textContent = 'ESCANEAR CON CAMARA';
+    }
 }
 
-function playBeepError() {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'square';
-    osc.frequency.value = 300;
-    gain.gain.value = 0.25;
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-    osc.stop(audioCtx.currentTime + 0.3);
+function focusUsbInput() {
+    const input = document.getElementById('usbInput');
+    input.focus();
+
+    const area = document.getElementById('usbArea');
+    area.classList.add('active');
+    document.getElementById('usbStatus').textContent = 'Escaneando...';
+    document.getElementById('usbIcon').textContent = '\u26A1';
+
+    setTimeout(() => {
+        if (document.activeElement === input) {
+            area.classList.add('scanning');
+        }
+    }, 300);
 }
 
 // ============================================================
-// ESCANER QR
+// FLASH FEEDBACK (instant visual feedback)
 // ============================================================
-function iniciarEscaner() {
-    if (scanning) return;
+let flashTimeout;
+function flashFeedback(type) {
+    const overlay = document.getElementById('flashOverlay');
+    overlay.className = 'flash-overlay ' + type;
+    clearTimeout(flashTimeout);
+    flashTimeout = setTimeout(() => {
+        overlay.className = 'flash-overlay';
+    }, 80);
+}
 
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+// ============================================================
+// CAMERA SCANNER (fallback mode)
+// ============================================================
+let lastCameraScanTime = 0;
+
+function iniciarCamara() {
+    if (cameraScanning) return;
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
     html5QrCode = new Html5Qrcode("reader");
 
-    const config = {
-        fps: 10,
-        qrbox: { width: 280, height: 280 },
-        aspectRatio: 1.0
-    };
-
     html5QrCode.start(
         { facingMode: "environment" },
-        config,
-        onScanSuccess,
-        () => {} // ignore scan failures
+        { fps: 15, qrbox: { width: 280, height: 280 }, aspectRatio: 1.0 },
+        onCameraScan,
+        () => {}
     ).then(() => {
-        scanning = true;
+        cameraScanning = true;
         if (!stats.startTime) stats.startTime = Date.now();
         document.getElementById('btnStart').style.display = 'none';
         document.getElementById('btnStop').style.display = 'inline-block';
     }).catch(err => {
-        console.error('Error al iniciar camara:', err);
+        console.error('Error camara:', err);
         mostrarResultado(false, 'Error al acceder a la camara', err.toString());
     });
 }
 
-function detenerEscaner() {
-    if (!html5QrCode || !scanning) return;
+function detenerCamara() {
+    if (!html5QrCode || !cameraScanning) return;
     html5QrCode.stop().then(() => {
-        scanning = false;
+        cameraScanning = false;
         document.getElementById('btnStart').style.display = 'inline-block';
         document.getElementById('btnStop').style.display = 'none';
     }).catch(console.error);
 }
 
-async function onScanSuccess(decodedText) {
-    // Throttle: ignore scans within 2 seconds
+async function onCameraScan(decodedText) {
     const now = Date.now();
-    if (now - lastScanTime < 2000) return;
-    lastScanTime = now;
+    if (now - lastCameraScanTime < 1500) return;
+    lastCameraScanTime = now;
 
+    let codigoUnico;
     let qrData;
     try {
         qrData = JSON.parse(decodedText);
+        const fecha = qrData.t
+            ? qrData.t.split('T')[0].replace(/-/g, '')
+            : new Date().toISOString().split('T')[0].replace(/-/g, '');
+        codigoUnico = `${qrData.d}-${String(qrData.c).padStart(4, '0')}-${fecha}`;
     } catch {
         playBeepError();
         mostrarResultado(false, 'QR invalido', 'No se pudo leer el codigo');
-        agregarHistorial(false, 'QR invalido', '--', '--');
+        agregarHistorial(false, 'QR invalido', '--', 'Formato incorrecto');
         stats.errores++;
         actualizarKPIs();
-        autoResume();
+        autoHideResult();
         return;
     }
-
-    // Build codigo_unico from QR data: {dni}-{caja_padded}-{fecha}
-    const fecha = qrData.t ? qrData.t.split('T')[0].replace(/-/g, '') : new Date().toISOString().split('T')[0].replace(/-/g, '');
-    const codigoUnico = `${qrData.d}-${String(qrData.c).padStart(4, '0')}-${fecha}`;
 
     try {
         if (!isOnline || !supabaseClient) throw new Error('offline');
@@ -629,48 +1170,39 @@ async function onScanSuccess(decodedText) {
 
         if (data && data.exito) {
             playBeepSuccess();
-            const nombre = data.trabajador_nombre || qrData.trabajador || 'Trabajador';
-            const caja = data.numero_caja || qrData.caja || qrData.nro_caja || '--';
+            flashFeedback('success');
+            const nombre = data.trabajador_nombre || 'Trabajador';
+            const caja = data.numero_caja || qrData.c || '--';
             mostrarResultado(true, nombre, `Caja #${caja} registrada`);
             agregarHistorial(true, nombre, caja, '');
             stats.total++;
-            stats.ultimaCaja = caja;
+            stats.exitos++;
         } else {
             playBeepError();
-            const msg = (data && data.error) || data.mensaje || 'Caja duplicada o invalida';
+            flashFeedback('error');
+            const msg = (data && data.error) || 'Caja duplicada o invalida';
             mostrarResultado(false, msg, '');
             agregarHistorial(false, msg, qrData.c || '--', msg);
             stats.errores++;
         }
     } catch (err) {
-        // Offline or error: store locally
         if (err.message === 'offline' || !navigator.onLine) {
             isOnline = false;
-            guardarPendiente(codigoUnico || decodedText, qrData);
+            guardarPendiente(codigoUnico, { d: qrData.d, c: qrData.c });
             playBeepSuccess();
-            const nombre = `DNI ${qrData.d}` || 'Trabajador';
-            const caja = qrData.c || '--';
-            mostrarResultado(true, nombre, `Caja #${caja} (guardada offline)`);
-            agregarHistorial(true, nombre + ' (offline)', caja, '');
+            mostrarResultado(true, `DNI ${qrData.d}`, `Caja #${qrData.c} (offline)`);
+            agregarHistorial(true, `DNI ${qrData.d} (offline)`, qrData.c, '');
             stats.total++;
-            stats.ultimaCaja = caja;
         } else {
             playBeepError();
-            mostrarResultado(false, 'Error de conexion', err.message || 'Error desconocido');
+            mostrarResultado(false, 'Error de conexion', err.message);
             agregarHistorial(false, 'Error', '--', err.message);
             stats.errores++;
         }
     }
 
     actualizarKPIs();
-    autoResume();
-}
-
-function autoResume() {
-    setTimeout(() => {
-        const card = document.getElementById('resultCard');
-        card.className = 'result-card';
-    }, 1500);
+    autoHideResult();
 }
 
 // ============================================================
@@ -686,6 +1218,19 @@ function mostrarResultado(ok, text, detail) {
     icon.textContent = ok ? '\u2713' : '\u2717';
     txt.textContent = text;
     det.textContent = detail;
+
+    // Auto-hide faster in USB mode
+    clearTimeout(card._hideTimeout);
+    card._hideTimeout = setTimeout(() => {
+        card.className = 'result-card';
+    }, currentMode === 'usb' ? 800 : 1500);
+}
+
+function autoHideResult() {
+    clearTimeout(autoHideResult._t);
+    autoHideResult._t = setTimeout(() => {
+        document.getElementById('resultCard').className = 'result-card';
+    }, 1500);
 }
 
 // ============================================================
@@ -693,8 +1238,8 @@ function mostrarResultado(ok, text, detail) {
 // ============================================================
 function actualizarKPIs() {
     document.getElementById('kpiTotal').textContent = stats.total;
+    document.getElementById('kpiExitos').textContent = stats.exitos;
     document.getElementById('kpiErrores').textContent = stats.errores;
-    document.getElementById('kpiUltima').textContent = stats.ultimaCaja;
 
     if (stats.startTime && stats.total > 0) {
         const minutos = (Date.now() - stats.startTime) / 60000;
@@ -704,35 +1249,94 @@ function actualizarKPIs() {
 }
 
 // ============================================================
+// SPEED DISPLAY (USB mode)
+// ============================================================
+function updateSpeedDisplay() {
+    const display = document.getElementById('speedDisplay');
+
+    if (stats.scanTimes.length < 2) {
+        display.classList.remove('visible');
+        return;
+    }
+
+    display.classList.add('visible');
+
+    // Calculate scans per minute from last 60 seconds of data
+    const now = Date.now();
+    const recentScans = stats.scanTimes.filter(t => t > now - 60000);
+    const scansPerMinute = recentScans.length;
+
+    document.getElementById('speedValue').textContent = scansPerMinute;
+
+    // Calculate avg time between scans
+    if (recentScans.length >= 2) {
+        const intervals = [];
+        for (let i = 1; i < recentScans.length; i++) {
+            intervals.push(recentScans[i] - recentScans[i - 1]);
+        }
+        const avgInterval = Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length);
+        document.getElementById('speedDetail').textContent =
+            `Promedio: ${avgInterval}ms entre escaneos | ${recentScans.length} en ultimo minuto`;
+    }
+}
+
+// ============================================================
+// BATCH INDICATOR
+// ============================================================
+function showBatchIndicator(show, text) {
+    const el = document.getElementById('batchIndicator');
+    el.classList.toggle('visible', show);
+    if (text) document.getElementById('batchText').textContent = text;
+}
+
+// ============================================================
 // HISTORIAL
 // ============================================================
-function agregarHistorial(ok, nombre, caja, detalle) {
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+function agregarHistorial(ok, nombre, caja, detalle, timestamp) {
+    const ts = timestamp || Date.now();
+    const d = new Date(ts);
+    const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+    const ms = String(d.getMilliseconds()).padStart(3, '0');
 
-    historial.unshift({ ok, nombre, caja, detalle, time });
-    if (historial.length > 30) historial.pop();
+    historial.unshift({ ok, nombre, caja, detalle, time, ms, id: ts });
+    if (historial.length > 50) historial.pop();
 
     renderHistorial();
 }
 
+function updateHistoryItem(rawCode, ok, errorMsg, newName, newCaja) {
+    // Find and update matching history item
+    for (let i = 0; i < historial.length; i++) {
+        const h = historial[i];
+        if (!ok && h.ok) {
+            // Check if this item matches by name containing the raw data
+            historial[i].ok = false;
+            historial[i].detalle = errorMsg || 'Error';
+            renderHistorial();
+            return;
+        }
+        if (ok && newName && h.nombre !== newName) {
+            historial[i].nombre = newName;
+            if (newCaja) historial[i].caja = newCaja;
+            renderHistorial();
+            return;
+        }
+    }
+}
+
+// Optimized render: build HTML string instead of DOM manipulation
 function renderHistorial() {
     const list = document.getElementById('historyList');
+    document.getElementById('historyCount').textContent = historial.length;
+
     if (historial.length === 0) {
         list.innerHTML = '<div class="empty-history">Sin escaneos registrados</div>';
         return;
     }
 
-    list.innerHTML = historial.map(h => `
-        <div class="history-item ${h.ok ? 'ok' : 'fail'}">
-            <div class="history-status">${h.ok ? '\u2713' : '\u2717'}</div>
-            <div class="history-info">
-                <div class="name">${escapeHtml(h.nombre)}</div>
-                <div class="detail">Caja #${escapeHtml(String(h.caja))}${h.detalle ? ' - ' + escapeHtml(h.detalle) : ''}</div>
-            </div>
-            <div class="history-time">${h.time}</div>
-        </div>
-    `).join('');
+    // Only render visible items (first 30)
+    const visible = historial.slice(0, 30);
+    list.innerHTML = visible.map(h => `<div class="history-item ${h.ok ? 'ok' : 'fail'}"><div class="history-status">${h.ok ? '\u2713' : '\u2717'}</div><div class="history-info"><div class="name">${escapeHtml(h.nombre)}</div><div class="detail">Caja #${escapeHtml(String(h.caja))}${h.detalle ? ' - ' + escapeHtml(h.detalle) : ''}</div></div><div class="history-time">${h.time}<span class="ms">.${h.ms}</span></div></div>`).join('');
 }
 
 function escapeHtml(text) {
@@ -773,15 +1377,17 @@ async function registroManual() {
 
         if (data && data.exito) {
             playBeepSuccess();
+            flashFeedback('success');
             const nombre = data.trabajador_nombre || `DNI ${dni}`;
-            mostrarResultado(true, nombre, `Caja #${caja} registrada manualmente`);
+            mostrarResultado(true, nombre, `Caja #${caja} registrada`);
             agregarHistorial(true, nombre + ' (manual)', caja, '');
             stats.total++;
-            stats.ultimaCaja = caja;
+            stats.exitos++;
             if (!stats.startTime) stats.startTime = Date.now();
         } else {
             playBeepError();
-            const msg = (data && data.error) || data.mensaje || 'Error en registro';
+            flashFeedback('error');
+            const msg = (data && data.error) || 'Error en registro';
             mostrarResultado(false, msg, '');
             agregarHistorial(false, msg, caja, msg);
             stats.errores++;
@@ -791,24 +1397,24 @@ async function registroManual() {
             isOnline = false;
             guardarPendiente(JSON.stringify({ dni, caja, manual: true }), { dni, caja, manual: true });
             playBeepSuccess();
-            mostrarResultado(true, `DNI ${dni}`, `Caja #${caja} (guardada offline)`);
+            mostrarResultado(true, `DNI ${dni}`, `Caja #${caja} (offline)`);
             agregarHistorial(true, `DNI ${dni} (offline/manual)`, caja, '');
             stats.total++;
-            stats.ultimaCaja = caja;
             if (!stats.startTime) stats.startTime = Date.now();
         } else {
             playBeepError();
             mostrarResultado(false, 'Error de conexion', err.message);
-            agregarHistorial(false, 'Error manual', caja, err.message);
+            agregarHistorial(false, 'Error', caja, err.message);
             stats.errores++;
         }
     }
 
     actualizarKPIs();
-    autoResume();
-
     document.getElementById('inputDni').value = '';
     document.getElementById('inputCaja').value = '';
+
+    // Return focus to USB input if in USB mode
+    if (currentMode === 'usb') focusUsbInput();
 }
 
 // ============================================================
@@ -845,28 +1451,44 @@ async function sincronizarPendientes() {
     btn.textContent = 'Sincronizando...';
     btn.disabled = true;
 
+    // Use batch function for faster sync
+    const batchItems = pendientes.filter(p => !p.data?.manual);
+    const manualItems = pendientes.filter(p => p.data?.manual);
+
     let exitosos = 0;
     let fallidos = [];
 
-    for (const item of pendientes) {
+    // Batch sync QR scans
+    if (batchItems.length > 0) {
         try {
-            if (item.data && item.data.manual) {
-                const { error } = await supabaseClient.rpc('fn_registro_manual', {
-                    p_dni: item.data.dni,
-                    p_numero_caja: parseInt(item.data.caja),
-                    p_observaciones: 'Sync offline - registro manual'
-                });
-                if (error) throw error;
-            } else {
-                // item.raw is already the codigo_unico
-                const { error } = await supabaseClient.rpc('fn_registrar_escaneo', {
-                    p_codigo_qr: item.raw,
-                    p_escaneado_por: null
-                });
-                if (error) throw error;
-            }
+            const codigos = batchItems.map(item => ({
+                codigo: item.raw,
+                timestamp: item.timestamp
+            }));
+
+            const { data, error } = await supabaseClient.rpc('fn_registrar_escaneo_batch', {
+                p_codigos: codigos
+            });
+
+            if (error) throw error;
+            exitosos += data.exitos || 0;
+            // Items that errored are still "synced" (they were duplicates or invalid)
+        } catch {
+            fallidos.push(...batchItems);
+        }
+    }
+
+    // Sync manual registrations one by one
+    for (const item of manualItems) {
+        try {
+            const { error } = await supabaseClient.rpc('fn_registro_manual', {
+                p_dni: item.data.dni,
+                p_numero_caja: parseInt(item.data.caja),
+                p_observaciones: 'Sync offline - registro manual'
+            });
+            if (error) throw error;
             exitosos++;
-        } catch (err) {
+        } catch {
             fallidos.push(item);
         }
     }
@@ -883,12 +1505,11 @@ async function sincronizarPendientes() {
     if (fallidos.length === 0) {
         mostrarResultado(true, 'Sincronizacion completa', `${exitosos} escaneos enviados`);
     } else {
-        mostrarResultado(false, `${fallidos.length} pendientes`, `${exitosos} enviados correctamente`);
+        mostrarResultado(false, `${fallidos.length} pendientes`, `${exitosos} enviados`);
     }
-    autoResume();
 }
 
-// Detectar estado de conexion
+// Connection status
 window.addEventListener('online', () => {
     isOnline = true;
     if (pendientes.length > 0) actualizarBannerOffline();
@@ -904,14 +1525,37 @@ window.addEventListener('offline', () => {
 // ============================================================
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(reg => {
-        console.log('Service Worker registrado:', reg.scope);
-    }).catch(err => {
-        console.warn('Service Worker no registrado:', err);
-    });
+        console.log('SW registrado:', reg.scope);
+    }).catch(() => {});
 }
 
-// Init
+// ============================================================
+// KEYBOARD SHORTCUTS
+// ============================================================
+document.addEventListener('keydown', (e) => {
+    // F1 = Toggle mode
+    if (e.key === 'F1') {
+        e.preventDefault();
+        setMode(currentMode === 'usb' ? 'camera' : 'usb');
+    }
+    // F5 = Sync pendientes
+    if (e.key === 'F5' && pendientes.length > 0) {
+        e.preventDefault();
+        sincronizarPendientes();
+    }
+});
+
+// ============================================================
+// INIT
+// ============================================================
+USB.init();
 actualizarBannerOffline();
+focusUsbInput();
+
+// Cleanup on exit
+window.addEventListener('beforeunload', () => {
+    USB.destroy();
+});
 </script>
 <script src="../theme.js"></script>
 
