@@ -1,4 +1,4 @@
-const CACHE_NAME = 'escaner-avance-v1';
+const CACHE_NAME = 'escaner-avance-v2';
 
 const URLS_TO_CACHE = [
     'index.html',
@@ -10,7 +10,6 @@ const URLS_TO_CACHE = [
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            console.log('Cache abierto:', CACHE_NAME);
             return cache.addAll(URLS_TO_CACHE);
         })
     );
@@ -31,28 +30,25 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Fetch: cache-first, fallback to network
+// Fetch: NETWORK-FIRST (intenta red primero, cache como fallback offline)
 self.addEventListener('fetch', (event) => {
-    // No cachear peticiones POST ni llamadas a Supabase API
     if (event.request.method !== 'GET') return;
     if (event.request.url.includes('supabase.co/rest') || event.request.url.includes('supabase.co/auth')) return;
 
     event.respondWith(
-        caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-                return cachedResponse;
+        fetch(event.request).then((networkResponse) => {
+            // Si la red responde, actualizar cache y devolver
+            if (networkResponse && networkResponse.status === 200) {
+                const responseClone = networkResponse.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, responseClone);
+                });
             }
-            return fetch(event.request).then((networkResponse) => {
-                // Cachear nuevos recursos estaticos
-                if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-                    const responseClone = networkResponse.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseClone);
-                    });
-                }
-                return networkResponse;
-            }).catch(() => {
-                // Si falla todo, devolver pagina principal desde cache
+            return networkResponse;
+        }).catch(() => {
+            // Sin internet: usar cache
+            return caches.match(event.request).then((cachedResponse) => {
+                if (cachedResponse) return cachedResponse;
                 if (event.request.mode === 'navigate') {
                     return caches.match('index.html');
                 }
