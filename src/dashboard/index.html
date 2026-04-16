@@ -278,6 +278,41 @@
             border-radius: 2px;
         }
 
+        /* MAXIMIZE BUTTON */
+        .btn-maximize {
+            margin-left: auto;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 16px;
+            line-height: 1;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-maximize:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+            background: var(--accent-glow);
+        }
+        .btn-maximize span.label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* MAXIMIZED STATE */
+        body.maximized .panel-right { display: none !important; }
+        body.maximized .main-content { display: block; }
+        body.maximized .panel-left { width: 100%; }
+        body.maximized .ranking-scroll { max-height: none; }
+        body.maximized .ranking-table-wrapper { max-height: none; }
+
         .ranking-table-wrapper {
             overflow: hidden;
             position: relative;
@@ -826,7 +861,13 @@
 <div class="main-content">
     <!-- LEFT: RANKING TABLE -->
     <div class="panel-left">
-        <div class="panel-title">Ranking de Produccion</div>
+        <div class="panel-title">
+            Ranking de Produccion
+            <button class="btn-maximize" id="btnMaximize" onclick="toggleMaximize()">
+                <span id="maximizeIcon">&#9974;</span>
+                <span class="label" id="maximizeLabel">Maximizar</span>
+            </button>
+        </div>
         <div class="ranking-table-wrapper">
             <table class="ranking-table">
                 <thead>
@@ -1496,6 +1537,21 @@
     }
 
 })();
+
+// Maximize toggle (global scope for onclick)
+function toggleMaximize() {
+    var body = document.body;
+    var icon = document.getElementById('maximizeIcon');
+    var label = document.getElementById('maximizeLabel');
+    body.classList.toggle('maximized');
+    if (body.classList.contains('maximized')) {
+        icon.innerHTML = '&#10006;';
+        label.textContent = 'Restaurar';
+    } else {
+        icon.innerHTML = '&#9974;';
+        label.textContent = 'Maximizar';
+    }
+}
 </script>
 <script src="../theme.js"></script>
 </body>
