@@ -51,14 +51,36 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            min-width: 0;
+        }
+
+        .header-back {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            transition: color 0.3s, border-color 0.3s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .header-back:hover {
+            color: var(--accent);
+            border-color: var(--accent);
         }
 
         .company-name {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 700;
             letter-spacing: 2px;
             color: var(--text-primary);
             text-shadow: 0 0 20px rgba(0,212,255,0.3);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .company-name span {
@@ -70,6 +92,7 @@
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
+            pointer-events: none;
         }
 
         .header-title {
@@ -577,27 +600,7 @@
         .volver-link:hover { color: var(--accent); opacity: 1; }
 
         .volver-top-link {
-            display: inline-block;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            padding: 6px 18px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-secondary));
-            transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
-            position: absolute;
-            top: 15px;
-            left: 20px;
-            z-index: 100;
-        }
-
-        .volver-top-link:hover {
-            color: var(--accent);
-            border-color: var(--accent);
-            background: var(--accent-glow);
+            display: none;
         }
 
         /* ============================================
@@ -752,7 +755,7 @@
 </head>
 <body>
 
-<a href="../index.html" class="volver-top-link">&#8592; Volver al inicio</a>
+<!-- volver link moved into header -->
 
 <!-- ============================================
      CELEBRATION OVERLAY
@@ -771,6 +774,7 @@
      ============================================ -->
 <div class="header">
     <div class="header-left">
+        <a href="../index.html" class="header-back">&#8592; Volver</a>
         <div class="company-name"><span>FRUTAS</span> TROPICALES PIURA</div>
     </div>
     <div class="header-center">
@@ -876,7 +880,7 @@
         <div class="connection-dot disconnected" id="connectionDot"></div>
         <span class="connection-text disconnected" id="connectionText">DESCONECTADO</span>
     </div>
-    <a href="../index.html" class="volver-link">&#8592; Volver</a>
+
 </div>
 
 <!-- ============================================

@@ -32,7 +32,7 @@
         const btn = document.createElement('button');
         btn.id = 'themeToggle';
         btn.setAttribute('aria-label', 'Cambiar tema');
-        btn.style.cssText = 'position:fixed;top:15px;right:15px;z-index:10000;padding:8px 16px;border-radius:25px;border:2px solid rgba(128,128,128,0.3);background:rgba(128,128,128,0.15);color:inherit;font-size:0.85rem;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.3s;backdrop-filter:blur(8px);';
+        btn.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:10000;padding:8px 16px;border-radius:25px;border:2px solid rgba(128,128,128,0.3);background:rgba(30,30,70,0.85);color:inherit;font-size:0.85rem;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.3s;backdrop-filter:blur(8px);box-shadow:0 4px 15px rgba(0,0,0,0.3);';
         btn.addEventListener('click', toggleTheme);
         btn.addEventListener('mouseenter', function() { this.style.transform = 'scale(1.1)'; });
         btn.addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
