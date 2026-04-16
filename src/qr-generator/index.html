@@ -1027,14 +1027,18 @@
         // =====================================================
         //  VERIFICAR DUPLICADOS
         // =====================================================
-        async function verificarDuplicados(trabajadorId, desde, hasta) {
+        async function verificarDuplicados(trabajadorId, desde, hasta, fecha) {
             try {
+                // Buscar QR que ya existan para este trabajador, rango de cajas Y fecha
+                const codigosCheck = [];
+                for (let i = desde; i <= hasta; i++) {
+                    codigosCheck.push(`${trabajadorSeleccionado.dni}-${String(i).padStart(4,'0')}-${fecha.replace(/-/g,'')}`);
+                }
                 const { data, error } = await db
                     .from('codigos_qr')
-                    .select('numero_caja')
+                    .select('numero_caja, codigo_unico')
                     .eq('trabajador_id', trabajadorId)
-                    .gte('numero_caja', desde)
-                    .lte('numero_caja', hasta);
+                    .in('codigo_unico', codigosCheck);
 
                 if (error) throw error;
 
@@ -1082,7 +1086,7 @@
                 const turnoId = await obtenerTurnoId(turno);
 
                 // Verificar duplicados
-                const duplicados = await verificarDuplicados(trabajadorId, desde, hasta);
+                const duplicados = await verificarDuplicados(trabajadorId, desde, hasta, fecha);
                 if (duplicados.length > 0) {
                     const cajasDup = duplicados.map(d => d.numero_caja).join(', ');
                     mostrarToast(`Ya existen QR para las cajas: ${cajasDup}`, 'error');
